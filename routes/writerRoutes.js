@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router()
 
-const { createWriter, signOut, verifyWriterEmail, resendVerificationWriterEmail, changePassword, resetPassword, forgotPassword, userLogin, } = require('../controllers/writercontroller')
+const { createWriter, signOut, verifyWriterEmail, resendVerificationWriterEmail, changePassword, resetPassword, forgotPassword, userLogin, } = require('../controllers/writerController')
 const upload = require("../utils/multer")
 
 
