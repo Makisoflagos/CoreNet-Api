@@ -86,6 +86,7 @@ const signUp = async ( req, res ) => {
             // save the user
             
              user.token = token
+             user.isAdmin = true
              const savedUser = await user.save();
 
           
