@@ -3,8 +3,8 @@
 const express = require("express");
 const router = express.Router()
 
-const { signUp, userLogin, signOut, verifyEmail, resendVerificationEmail, changePassword, resetPassword, forgotPassword,  } = require('../controllers/editorController');
-const {getAllEditors} = require("../controllers/editorController")
+const { signUp, userLogin, signOut, verifyEmail, resendVerificationEmail, changePassword, resetPassword, forgotPassword } = require('../controllers/editorController');
+const {getAllEditors, getOneEditor, } = require("../controllers/editorController")
 const upload = require("../utils/multer");
 const { authenticate } = require("../middleware/authentication");
 
@@ -23,7 +23,8 @@ router.route('/reset-password/:token').post(resetPassword)
 router.route("/forgot-password/:token").post(forgotPassword)
 
 // // editors crud operation route
-// router.route('/get-all-editors').get(getAllEditors)
+router.route("/get-all-editors").get(getAllEditors)
+router.route("/get-one-editor/:id").get(getOneEditor)
 
 
 module.exports = router

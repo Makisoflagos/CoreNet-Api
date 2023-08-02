@@ -404,15 +404,14 @@ const changePassword = async (req, res) => {
 // get all editors in the database
 const getAllEditors = async (req, res) =>{
   try{
-    const alleditors = await editorModel.find().populate('Writers');
+    const alleditors = await editorModel.find();
     if(alleditors.length === 0){
        res.status(404).json({
         message: `No Editors in the Database`
        })
     }else{
       res.status(200).json({
-        message: `These are the available Editors in the Database, 
-        they are ${alleditors.length} in number`,
+        message: `These are the available Editors in the Database, they are ${alleditors.length} in number`,
         data: alleditors
       })
     }
@@ -424,7 +423,30 @@ const getAllEditors = async (req, res) =>{
   }
 }
 
-// exportthe function
+// get one editor from the database
+
+const getOneEditor = async (req, res) => {
+  try{
+    const { id } = req.params;
+    const oneEditor = await editorModel.findById(id)
+    if (!oneEditor){
+      return res.status(404).json({
+        message: `The editor with ths ${id} doesn't exist`
+      })
+    }else{
+      res.status(200).json({
+        message: `This is the information about the Editor searched for`,
+        data: oneEditor
+      })
+    }
+  }catch(error){
+    res.status(500).json({
+      message: error.message
+    })
+  }
+}
+
+// export the function
 
 module.exports = {
     signUp,
@@ -435,7 +457,8 @@ module.exports = {
     forgotPassword,
     resetPassword,
     changePassword,
-    getAllEditors
+    getAllEditors,
+    getOneEditor
     
 
 }
