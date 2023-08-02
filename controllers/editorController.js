@@ -66,7 +66,8 @@ const signUp = async ( req, res ) => {
                 id: user._id,
                 Password: user.Password,
                 Email: user.Email,
-                isVerified: user.isVerified
+                isVerified: user.isVerified,
+                UserName: user.UserName
             },
     
                 process.env.secretKey, { expiresIn: "5 days" },
@@ -223,7 +224,7 @@ const userLogin = async (req, res) => {
         {
           id: editor._id,
           UserName: editor.UserName,
-          Email: editor.Email.toUpperCase(),
+          Email: editor.Email,
         },
         process.env.secretKey,
         { expiresIn: "1d" }
@@ -398,7 +399,28 @@ const changePassword = async (req, res) => {
   };
   
 
+// get all editors in the database
+const getAllEditors = async (req, res) =>{
+  try{
+    const alleditors = await editorModel.find().populate('Writers');
+    if(alleditors.length === 0){
+       res.status(404).json({
+        message: `No Editors in the Database`
+       })
+    }else{
+      res.status(200).json({
+        message: `These are the available Editors in the Database, 
+        they are ${alleditors.length} in number`,
+        data: alleditors
+      })
+    }
 
+  }catch(error){
+    res.status(500).json({
+      message: error.message
+    })
+  }
+}
 
 // exportthe function
 
@@ -410,7 +432,8 @@ module.exports = {
     signOut,
     forgotPassword,
     resetPassword,
-    changePassword
+    changePassword,
+    getAllEditors
     
 
 }

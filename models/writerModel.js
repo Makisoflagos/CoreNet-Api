@@ -30,6 +30,10 @@ const writerSchema = new mongoose.Schema({
         type: String,
 
     },
+    createdBy: {
+        type: mongoose.SchemaTypes.ObjectId, 
+        ref: 'Editors'
+    },
     task:[{
         type: mongoose.SchemaTypes.ObjectId,
         ref: "Tasks"
