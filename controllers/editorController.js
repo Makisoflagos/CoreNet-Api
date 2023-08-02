@@ -223,6 +223,7 @@ const userLogin = async (req, res) => {
         {
           id: editor._id,
           UserName: editor.UserName,
+          Email: editor.Email.toUpperCase(),
         },
         process.env.secretKey,
         { expiresIn: "1d" }
