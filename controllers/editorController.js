@@ -93,7 +93,7 @@ const signUp = async ( req, res ) => {
           
             // return a response
             res.status( 201 ).json( {
-            message: `Check your email: ${savedUser.Email} to verify your account.`,
+            message: `Check your email: ${savedUser.Email.toLowerCase()} to verify your account.`,
             data: savedUser,
           //  token
         })
@@ -186,70 +186,72 @@ const resendVerificationEmail = async (req, res) => {
 }
 
 //login function
+
 const userLogin = async (req, res) => {
-    try {
-      // Extract the username, email, and password from the request body
-      const { UserName, Password, Email } = req.body;
-  
-      // Find the editor by their email or username
-      const editor = await editorModel.findOne({ $or: [{ UserName }, { Email: Email.toLowerCase()}] });
-  
-      // Check if the editor exists
-      if (!editor) {
-        return res.status(404).json({
-          message: `Username/Email is not found`,
-        });
-      }
-  
-      // Compare the inputted password with the existing one using bcrypt.compare
-      const checkPassword = bcrypt.compareSync(Password, editor.Password);
-  
-      // Check for password match
-      if (!checkPassword) {
-        return res.status(400).json({
-          message: `Login Unsuccessful`,
-          failed: `Invalid PASSWORD`,
-        });
-      }
-    //   check if user is verified
-    if(!editor.isVerified){
-        return res.status(404).json({
-            message: `User with ${Email} is not verified`,
-            
-        })
-    }
-  
-      // Generate a JWT token with the editor's ID and other information
-      const token = jwt.sign(
-        {
-          id: editor._id,
-          UserName: editor.UserName,
-          Email: editor.Email,
-        },
-        process.env.secretKey,
-        { expiresIn: "1d" }
-      );
-  
-      // Save the token to the editor's document
-      editor.token = token;
-      await editor.save();
-  
-      // Return success response with token and editor's data
-      res.status(200).json({
-        message: `User logged in successfully`,
-        data: {
-          editorId: editor._id,
-          UserName: editor.UserName,
-          token: editor.token,
-        },
-      });
-    } catch (error) {
-      // Handle any errors that occur during the process
-      res.status(500).json({
-        message: error.message,
+  try {
+    // Extract the username and password from the request body
+    const { UserName, Password } = req.body;
+
+    // Find the editor by their username
+    const editor = await editorModel.findOne({ UserName });
+
+    // Check if the editor exists
+    if (!editor) {
+      return res.status(404).json({
+        message: `Username is not found`,
       });
     }
-  };
+
+    // Compare the inputted password with the existing one using bcrypt.compare
+    const checkPassword = bcrypt.compareSync(Password, editor.Password);
+
+    // Check for password match
+    if (!checkPassword) {
+      return res.status(400).json({
+        message: `Login Unsuccessful`,
+        failed: `Invalid PASSWORD`,
+      });
+    }
+    
+    // Check if user is verified
+    if (!editor.isVerified) {
+      return res.status(404).json({
+          message: `User with ${editor.Email} is not verified`,
+      });
+    }
+
+    // Generate a JWT token with the editor's ID and other information
+    const token = jwt.sign(
+      {
+        id: editor._id,
+        UserName: editor.UserName,
+        Email: editor.Email,
+      },
+      process.env.secretKey,
+      { expiresIn: "1d" }
+    );
+
+    // Save the token to the editor's document
+    editor.token = token;
+    await editor.save();
+
+    // Return success response with token and editor's data
+    res.status(200).json({
+      message: `User logged in successfully`,
+      data: {
+        editorId: editor._id,
+        UserName: editor.UserName,
+        token: editor.token,
+      },
+    });
+  } catch (error) {
+    // Handle any errors that occur during the process
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
   
 //   editor sign out
   const signOut = async (req, res) => {
