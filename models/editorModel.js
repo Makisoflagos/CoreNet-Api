@@ -35,7 +35,7 @@ const UserSchema = new mongoose.Schema({
       required: ["CompanyName is required", true]
     },
     ProfileImage: {
-        type: String
+        type: String,
     },
     PublicId: {
         type: String

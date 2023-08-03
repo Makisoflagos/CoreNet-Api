@@ -464,7 +464,7 @@ const UpdateEditor = async(req, res ) => {
     })
 }
   //  get the information from the req.body
-  const {UserName, FirstName, Surname, Email} = req.body
+  const {UserName, FirstName, Surname, Email, CompanyName} = req.body
 
   const UserNameExists = await editorModel.findOne({ UserName })
   // check if the Username is present in the database
@@ -487,17 +487,19 @@ const UpdateEditor = async(req, res ) => {
     UserName: UserName || updatedEditor.UserName,
     Surname: Surname || updatedEditor.Surname,
     Email: Email || updatedEditor.Email,
-    ProfileImage: updatedEditor.ProfileImage,
-    PublicId: updatedEditor.PublicId,
+    CompanyName: CompanyName || updatedEditor.CompanyName,
+    // ProfileImage: updatedEditor.ProfileImage,
+    // PublicId: updatedEditor.PublicId,
+
   };
-  if (req.file) {
-    const result = await cloudinary.uploader.upload(req.file.path);
-    if (updatedEditor.PublicId) {
-      await cloudinary.uploader.destroy(updatedEditor.PublicId);
-    }
-    bodyData.ProfileImage = result.secure_url;
-    bodyData.publicId = result.public_id;
-    fs.unlinkSync(req.file.path);
+  if (req.files && req.files.ProfileImage) {
+    const result = await cloudinary.uploader.upload(req.files.ProfileImage.tempFilePath);
+    // if (updatedEditor.PublicId) {
+    //   await cloudinary.uploader.destroy(updatedEditor.PublicId);
+    // }
+    editorData.ProfileImage = result.secure_url;
+    editorData.PublicId = result.Public_id;
+    // fs.unlinkSync(req.file.path);
   }
     const newEditor = await editorModel.findByIdAndUpdate(id, editorData,{new: true} )
       res.status(200).json({
