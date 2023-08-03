@@ -37,7 +37,7 @@ const UserSchema = new mongoose.Schema({
     ProfileImage: {
         type: String
     },
-    Public_id: {
+    PublicId: {
         type: String
     },
     token: {

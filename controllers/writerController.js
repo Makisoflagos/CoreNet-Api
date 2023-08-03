@@ -188,10 +188,10 @@ const resendVerificationWriterEmail = async (req, res) => {
 const userLogin = async (req, res) => {
     try {
       // Extract the username, email, and password from the request body
-      const { UserName, Password, Email } = req.body;
+      const { UserName, Password } = req.body;
   
       // Find the writer by their email or username
-      const writer = await writerModel.findOne({ $or: [{ UserName }, { Email: Email.toLowerCase() }] });
+      const writer = await writerModel.findOne({ UserName } );
   
       // Check if the writer exists
       if (!writer) {
@@ -212,18 +212,19 @@ const userLogin = async (req, res) => {
       }
 
       //   check if user is verified
-    if(!writer.isVerified){
-        return res.status(404).json({
-            message: `User with ${Email} is not verified`,
+    // if(!writer.isVerified){
+    //     return res.status(404).json({
+    //         message: `User with ${writer.Email} is not verified`,
             
-        })
-    }
+    //     })
+    // }
   
       // Generate a JWT token with the writer's ID and other information
       const token = jwt.sign(
         {
           id: writer._id,
           UserName: writer.UserName,
+          Email: writer.Email
         },
         process.env.secretKey,
         { expiresIn: "1d" }
@@ -244,7 +245,8 @@ const userLogin = async (req, res) => {
       });
     } catch (error) {
       // Handle any errors that occur during the process
-      res.status(500).json({      message: error.message,
+      res.status(500).json({ 
+        message: error.message,
       });
     }
   };

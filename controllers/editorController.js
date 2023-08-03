@@ -51,6 +51,8 @@ const signUp = async ( req, res ) => {
             // hash the salted password using bcryptE
             const hashedPassword = await bcrypt.hash( Password, saltedRound );
 
+            // const enter = await cloudinary.uploader.upload(req.file.path)
+
             // create an editor
             const user = new editorModel( {
                 FirstName: FirstName.toUpperCase(),
@@ -58,7 +60,9 @@ const signUp = async ( req, res ) => {
                 UserName,
                 Email: Email.toLowerCase(),
                 Password: hashedPassword,
-                CompanyName
+                CompanyName,
+                // ProfileImage
+
             } );
 
             // create a token
@@ -213,12 +217,12 @@ const userLogin = async (req, res) => {
       });
     }
     
-    // Check if user is verified
-    if (!editor.isVerified) {
-      return res.status(404).json({
-          message: `User with ${editor.Email} is not verified`,
-      });
-    }
+    // // Check if user is verified
+    // if (!editor.isVerified) {
+    //   return res.status(404).json({
+    //       message: `User with ${editor.Email} is not verified`,
+    //   });
+    // }
 
     // Generate a JWT token with the editor's ID and other information
     const token = jwt.sign(
@@ -444,6 +448,67 @@ const getOneEditor = async (req, res) => {
       message: error.message
     })
   }
+};
+
+// update an editor
+const UpdateEditor = async(req, res ) => {
+  try{
+    // get the editor by id
+   const { id } = req.params;
+
+   const updatedEditor = await editorModel.findById(id);
+   if (!updatedEditor) {
+    return res.status(200).json({
+        message: `User with id: ${id} not found`,
+
+    })
+}
+  //  get the information from the req.body
+  const {UserName, FirstName, Surname, Email} = req.body
+
+  const UserNameExists = await editorModel.findOne({ UserName })
+  // check if the Username is present in the database
+
+        if (UserNameExists) {
+            return res.status(400).json({
+                message: `Username already exists.`
+            })
+        }
+        // check if email exists in the databse
+        const emailExists = await editorModel.findOne({ Email })
+        if (emailExists) {
+            return res.status(400).json({
+                message: `Email already exists.`
+            })
+        }
+
+  const editorData = {
+    FirstName: FirstName || updatedEditor.FirstName,
+    UserName: UserName || updatedEditor.UserName,
+    Surname: Surname || updatedEditor.Surname,
+    Email: Email || updatedEditor.Email,
+    ProfileImage: updatedEditor.ProfileImage,
+    PublicId: updatedEditor.PublicId,
+  };
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path);
+    if (updatedEditor.PublicId) {
+      await cloudinary.uploader.destroy(updatedEditor.PublicId);
+    }
+    bodyData.ProfileImage = result.secure_url;
+    bodyData.publicId = result.public_id;
+    fs.unlinkSync(req.file.path);
+  }
+    const newEditor = await editorModel.findByIdAndUpdate(id, editorData,{new: true} )
+      res.status(200).json({
+        message: `This editor with this ${id} has been succesfully updated`,
+        data: newEditor
+      })
+  }catch(err){
+    res.status(500).json({
+      Error: err.message
+    })
+  }
 }
 
 // export the function
@@ -458,7 +523,8 @@ module.exports = {
     resetPassword,
     changePassword,
     getAllEditors,
-    getOneEditor
+    getOneEditor,
+    UpdateEditor,
     
 
 }
