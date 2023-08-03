@@ -40,7 +40,7 @@ const createWriter = async ( req, res ) => {
             })
         }
         // check if the entry email exist
-        const isEmail = await writerModel.findOne( { Email } );
+        const isEmail = await writerModel.findOne( { Email: Email.toLowerCase()} );
         if ( isEmail ) {
             res.status( 400 ).json( {
                 message: `user with this email: ${Email} already exist.`
@@ -48,7 +48,7 @@ const createWriter = async ( req, res ) => {
         } else {
             // salt the password using bcrypt
             const saltedRound = await bcrypt.genSalt( 10 );
-            // hash the salted password using bcryptE
+            // hash the salted password using bcrypt
             const hashedPassword = await bcrypt.hash( Password, saltedRound );
 
             // create a writer
@@ -64,7 +64,9 @@ const createWriter = async ( req, res ) => {
             const token = jwt.sign({
                 id: user._id,
                 Password: user.Password,
-                Email: user.Email
+                Email: user.Email,
+                UserName: user.UserName,
+                isVerified: user.isVerified
             },
     
                 process.env.secretKey, { expiresIn: "5 days" },
