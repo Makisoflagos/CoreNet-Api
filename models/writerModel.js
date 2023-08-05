@@ -43,7 +43,7 @@ const writerSchema = new mongoose.Schema({
         ref: "Comments"
     }],
     token: {
-        type: String
+        type: String,
     }
 
 }, {timestamps: true})

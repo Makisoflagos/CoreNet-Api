@@ -6,17 +6,10 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const cloudinary = require('../utils/cloudinary');
-const validator = require('../middleware/editorValidation')
+const UploadedFile = require("express-fileupload");
+const { sendEmail } = require("../middleware/sendingMail")
+const { mailTemplate } = require("../utils/emailtemplate")
 
-// create a mailing function
-
-const transporter = nodemailer.createTransport({
-    service: process.env.service,
-    auth: {
-      user: process.env.user,
-      pass: process.env.password
-    }
-  });
 
 // SignUp
 const signUp = async ( req, res ) => {
@@ -24,28 +17,20 @@ const signUp = async ( req, res ) => {
         // get all data from the request body
         const { FirstName, Surname, UserName, Email, Password, CompanyName } = req.body;
 
-        
-    const validation = validator(Email, FirstName, Surname);
-    if (!validation.isValid) {
-      return res.status(400).json({
-        message: validation.message
-      });
-    }
-
         // check if username exists
         const UsernameExists = await editorModel.findOne({ UserName })
         if(UsernameExists){
-            res.status( 400 ).json( {
+           return res.status( 400 ).json( {
                 message: `user with this username: ${UserName} already exist.`
             })
         }
         // check if the entry email exist
         const isEmail = await editorModel.findOne( { Email: Email.toLowerCase() } );
         if ( isEmail ) {
-            res.status( 400 ).json( {
+           return res.status( 400 ).json( {
                 message: `user with this email: ${Email} already exist.`
             })
-        } else {
+        } 
             // salt the password using bcrypt
             const saltedRound = await bcrypt.genSalt( 10 );
             // hash the salted password using bcryptE
@@ -76,23 +61,25 @@ const signUp = async ( req, res ) => {
     
                 process.env.secretKey, { expiresIn: "5 days" },
             );
-            
-            // send verification email
-            const baseUrl = process.env.BASE_URL
-            const mailOptions = {
-                from: process.env.user,
-                to: Email,
-                subject: "Verify your account",
-              html: `Please click on the link to verify your email: <a href="${req.protocol}://${req.get("host")}/api/users/verify-email/${token}">Verify Email</a>`,
-            };
+            user.token = token
+            user.isAdmin = true
 
-            await transporter.sendMail( mailOptions );
+            // send verification email
+            const subject = "Verify your Email";
+            const protocol = req.protocol;
+            const host = req.get("host");
+           const link = `${protocol}://${host}/api/users/verify-email/${token}`;
+            const html = await mailTemplate(link);
+            const mail = {
+            email: Email,
+            subject,
+            html,
+           };
+            sendEmail(mail);
+            
 
             // save the user
-            
-             user.token = token
-             user.isAdmin = true
-             const savedUser = await user.save();
+            const savedUser = await user.save();
 
           
             // return a response
@@ -101,7 +88,7 @@ const signUp = async ( req, res ) => {
             data: savedUser,
           //  token
         })
-        }
+        
     } catch (error) {
         res.status( 500 ).json( {
             message: error.message
@@ -167,16 +154,17 @@ const resendVerificationEmail = async (req, res) => {
             const token = await jwt.sign( { Email: Email.toLowerCase() }, process.env.secretKey, { expiresIn: "50m" } );
             
              // send verification email
-             const baseUrl = process.env.BASE_URL
-            const mailOptions = {
-                from: process.env.user,
-                to: Email,
-                subject: "Verify your account",
-                html: `Please click on the link to verify your email: <a href="${req.protocol}://${req.get("host")}/api/users/verify-email/${token}">Verify Email</a>`,
+             const subject = "Verify your Email";
+             const protocol = req.protocol;
+             const host = req.get("host");
+            const link = `${protocol}://${host}/api/users/verify-email/${token}`;
+             const html = await mailTemplate(link);
+             const mail = {
+             email: Email,
+             subject,
+             html,
             };
-
-
-            await transporter.sendMail( mailOptions );
+             sendEmail(mail);
 
         res.status( 200 ).json( {
             message: `Verification email sent successfully to your email: ${editor.Email}`
@@ -194,15 +182,15 @@ const resendVerificationEmail = async (req, res) => {
 const userLogin = async (req, res) => {
   try {
     // Extract the username and password from the request body
-    const { UserName, Password } = req.body;
+    const { Email, Password } = req.body;
 
     // Find the editor by their username
-    const editor = await editorModel.findOne({ UserName });
+    const editor = await editorModel.findOne({ Email });
 
     // Check if the editor exists
     if (!editor) {
       return res.status(404).json({
-        message: `Username is not found`,
+        message: `Email is not found`,
       });
     }
 
@@ -246,6 +234,7 @@ const userLogin = async (req, res) => {
         editorId: editor._id,
         UserName: editor.UserName,
         token: editor.token,
+        Email: editor.Email
       },
     });
   } catch (error) {
@@ -298,14 +287,17 @@ const forgotPassword = async (req, res) => {
       const resetToken = await jwt.sign({ editorId: editor._id }, process.env.secretKey, { expiresIn: "30m" });
   
       // Send reset password email
-      const mailOptions = {
-        from:  process.env.user,
-        to: editor.Email,
-        subject: "Password Reset",
-        html: `Please click on the link to reset your password: <a href="${req.protocol}://${req.get("host")}/api/users/reset-password/${resetToken}">Reset Password</a>. This link expires in Thirty(30) minutes.`,
-      };
-  
-      await transporter.sendMail(mailOptions);
+      const subject = "Reset Password";
+      const protocol = req.protocol;
+      const host = req.get("host");
+     const link = `${protocol}://${host}/api/users/reset-password/${token}`;
+      const html = await mailTemplate(link);
+      const mail = {
+      email: Email,
+      subject,
+      html,
+     };
+      sendEmail(mail);
   
       res.status(200).json({
         message: "Password reset email sent successfully"
@@ -451,29 +443,29 @@ const getOneEditor = async (req, res) => {
 };
 
 // update an editor
-const UpdateEditor = async(req, res ) => {
-  try{
-    // get the editor by id
-   const { id } = req.params;
+const UpdateEditor = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-   const updatedEditor = await editorModel.findById(id);
-   if (!updatedEditor) {
-    return res.status(200).json({
+    const updatedEditor = await editorModel.findById(id);
+    if (!updatedEditor) {
+      return res.status(404).json({
         message: `User with id: ${id} not found`,
+      });
+    }
 
-    })
-}
+    
   //  get the information from the req.body
   const {UserName, FirstName, Surname, Email, CompanyName} = req.body
 
   const UserNameExists = await editorModel.findOne({ UserName })
   // check if the Username is present in the database
 
-        if (UserNameExists) {
-            return res.status(400).json({
-                message: `Username already exists.`
-            })
-        }
+        // if (UserNameExists) {
+        //     return res.status(201).json({
+        //         message: `Username already exists.`
+        //     })
+        // }
         // check if email exists in the databse
         const emailExists = await editorModel.findOne({ Email })
         if (emailExists) {
@@ -481,52 +473,81 @@ const UpdateEditor = async(req, res ) => {
                 message: `Email already exists.`
             })
         }
-
-  const editorData = {
-    FirstName: FirstName || updatedEditor.FirstName,
-    UserName: UserName || updatedEditor.UserName,
-    Surname: Surname || updatedEditor.Surname,
-    Email: Email || updatedEditor.Email,
-    CompanyName: CompanyName || updatedEditor.CompanyName,
-    // ProfileImage: updatedEditor.ProfileImage,
-    // PublicId: updatedEditor.PublicId,
-
-  };
-  if (req.files && req.files.ProfileImage) {
-    const result = await cloudinary.uploader.upload(req.files.ProfileImage.tempFilePath);
-    // if (updatedEditor.PublicId) {
-    //   await cloudinary.uploader.destroy(updatedEditor.PublicId);
-    // }
-    editorData.ProfileImage = result.secure_url;
-    editorData.PublicId = result.Public_id;
-    // fs.unlinkSync(req.file.path);
-  }
-    const newEditor = await editorModel.findByIdAndUpdate(id, editorData,{new: true} )
+        // if (req.file && req.files.ProfileImage) {
+        //   const result = await cloudinary.uploader.upload(
+        //     req.files.ProfileImage.tempFilePath
+            
+        //   );
+          // console.log(req)
+        
+          // console.log("secure_url")
+        
+        const file = req.files.ProfileImage
+        const result = await cloudinary.uploader.upload(file.tempFilePath)
+          
+        const editorData = {
+          FirstName: FirstName || updatedEditor.FirstName,
+          UserName: UserName || updatedEditor.UserName,
+          Surname: Surname || updatedEditor.Surname,
+          Email: Email || updatedEditor.Email,
+          CompanyName: CompanyName || updatedEditor.CompanyName,
+          ProfileImage: result.secure_url,
+          PublicId : result.public_id // Fix typo in 'public_id'
+        };
+        console.log(editorData)
+     
+    
+        const newEditor = await editorModel.findByIdAndUpdate(
+          id,
+          editorData,
+          { new: true }
+        );
+    
+        res.status(200).json({
+          message: `Editor with id ${id} has been updated`,
+          data: newEditor,
+        });
+      } catch (err) {
+        res.status(500).json({
+          Error: err.message,
+        });
+      }
+    };
+    
+    // delete an editor 
+    const deleteAnEditor = async(req, res) => {
+     try{
+      const id = req.params.id
+      const Editor = await editorModel.findById(id)
+      if(Editor.ProfileImage){
+      const result = await cloudinary.uploader.destroy(Editor.PublicId)
+      }
+      const deletedEditor = await editorModel.findByIdAndDelete(Editor)
       res.status(200).json({
-        message: `This editor with this ${id} has been succesfully updated`,
-        data: newEditor
+        message: `Deleted the editor with this id ${id} successfully`,
+        data: deletedEditor
       })
-  }catch(err){
-    res.status(500).json({
-      Error: err.message
-    })
-  }
-}
-
+     }catch(err){
+      res.status(500).json({
+        Error: err.message,
+      });
+     }
+    }
 // export the function
 
 module.exports = {
-    signUp,
-    userLogin,
-    verifyEmail,
-    resendVerificationEmail,
-    signOut,
-    forgotPassword,
-    resetPassword,
-    changePassword,
-    getAllEditors,
-    getOneEditor,
-    UpdateEditor,
+  signUp,
+  userLogin,
+  verifyEmail,
+  resendVerificationEmail,
+  signOut,
+  forgotPassword,
+  resetPassword,
+  changePassword,
+  getAllEditors,
+  getOneEditor,
+  UpdateEditor,
+  deleteAnEditor
     
 
 }

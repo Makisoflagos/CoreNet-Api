@@ -1,36 +1,44 @@
-const validator = require('validator')
+const Joi = require("@hapi/joi");
 
+const validationMiddleware = (req, res, next) => {
+  // Define the validation schema using Joi
+  const schema = Joi.object ({
+    FirstName: Joi.string().required().messages({
+        "any.required": "First name is required.",
+      }),
+      Surname: Joi.string().required().messages({
+        "any.required": "Last name is required.",
+      }),
+      Email: Joi.string().email().required().messages({
+        "any.required": "Email is required.",
+        "string.email": "Invalid email format.",
+      }),
+      UserName: Joi.string().required().messages({
+        "any.required": "Username is required.",
+      }),
+      Password: Joi.string().required().messages({
+        "any.required": "Password is required.",
+      }),
+     CompanyName: Joi.string().required().messages({
+            "any.required": "CompanyName is required.",
+            
+          }),
+  
+  });
 
-const validateEmail = (Email, FirstName, Surname) => {
-    if (!validator.isEmail(Email)) {
-        return {
-            isValid: false,
-            message: 'Invalid Email Format'
-        };
-    }
+  // Validate the request body against the schema
+  const { error } = schema.validate(req.body, { abortEarly: false });
 
-    const stringPattern = /^[A-Za-z]+$/;
+  // If there's a validation error, return a response with the error details
+  if (error) {
+    const errorMessage = error.details.map((err) => err.message).join(" ");
+    return res.status(400).json({ error: errorMessage });
+  }
 
-    if (!stringPattern.test(FirstName)) {
-        return {
-            isValid: false,
-            message: 'Invalid Name Format. Only letters and spaces are allowed.'
-        };
-    }
-    const string = /^[A-Za-z]+$/;
-
-    if (!string.test(Surname,)) {
-        return {
-            isValid: false,
-            message: 'Invalid Name Format. Only letters and spaces are allowed.'
-        };
-    }
-
-    return {
-        isValid: true
-    };
+  // If validation is successful, move to the next middleware
+  next();
 };
 
+module.exports = { validationMiddleware };
 
 
-module.exports = validateEmail

@@ -51,6 +51,10 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    Writers: [{
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: 'Writers'
+    }],
     task: [{
         type: mongoose.SchemaTypes.ObjectId,
         ref: "Tasks"

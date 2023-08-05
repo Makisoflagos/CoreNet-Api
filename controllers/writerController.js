@@ -6,58 +6,56 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const cloudinary = require('../utils/cloudinary');
-const validator = require('../middleware/writerValidation')
+const editorModel = require("../models/editorModel")
+const {sendEmail } = require("../middleware/sendingMail")
+const { mailTemplate } = require("../utils/emailtemplate")
 
-// create a mailing function
 
-const transporter = nodemailer.createTransport({
-    service: process.env.service,
-    auth: {
-      user: process.env.user,
-      pass: process.env.password
-    }
-  });
 
   // create a writer
-const createWriter = async ( req, res ) => {
+  const createWriter = async ( req, res ) => {
     try {
-        // get all data from the request body
-        const { FullName, UserName, Email, Password } = req.body;
+         // get all data from the request body
+         const { FullName, UserName, Email, Password,  } = req.body;
 
-        
-    const validation = validator(Email, FullName);
-    if (!validation.isValid) {
-      return res.status(400).json({
-        message: validation.message
-      });
-    }
-
+        //  get editorid
+        const {id} = req.user
+        const editor = await editorModel.findById(id)
+        console.log(editor)
+        if(!editor){
+            return res.status(404).json({
+                message: `Editor was not found`
+            })
+        }
         // check if username exists
         const UsernameExists = await writerModel.findOne({ UserName })
         if(UsernameExists){
-            res.status( 400 ).json( {
+            return res.status( 400 ).json( {
                 message: `user with this username: ${UserName} already exist.`
             })
         }
         // check if the entry email exist
-        const isEmail = await writerModel.findOne( { Email: Email.toLowerCase()} );
+        const isEmail = await writerModel.findOne( { Email: Email.toLowerCase() } );
         if ( isEmail ) {
-            res.status( 400 ).json( {
+           return res.status( 400 ).json( {
                 message: `user with this email: ${Email} already exist.`
             })
-        } else {
+        } 
             // salt the password using bcrypt
             const saltedRound = await bcrypt.genSalt( 10 );
-            // hash the salted password using bcrypt
+            // hash the salted password using bcryptE
             const hashedPassword = await bcrypt.hash( Password, saltedRound );
 
-            // create a writer
+            // const enter = await cloudinary.uploader.upload(req.file.path)
+
+            // create an editor
             const user = new writerModel( {
                 FullName: FullName.toUpperCase(),
                 UserName,
                 Email: Email.toLowerCase(),
                 Password: hashedPassword,
                 
+
             } );
 
             // create a token
@@ -65,37 +63,42 @@ const createWriter = async ( req, res ) => {
                 id: user._id,
                 Password: user.Password,
                 Email: user.Email,
-                UserName: user.UserName,
-                isVerified: user.isVerified
+                isVerified: user.isVerified,
+                UserName: user.UserName
             },
     
                 process.env.secretKey, { expiresIn: "5 days" },
             );
             
             // send verification email
-            const baseUrl = process.env.BASE_URL
-            const mailOptions = {
-                from: process.env.user,
-                to: Email,
-                subject: "Verify your account",
-              html: `Please click on the link to verify your email: <a href="${req.protocol}://${req.get("host")}/api/users/verify-email/${token}">Verify Email</a>`,
-            };
-
-            await transporter.sendMail( mailOptions );
+            
+            const subject = "Verify your Email";
+            const protocol = req.protocol;
+            const host = req.get("host");
+           const link = `${protocol}://${host}/api/users/verify-email/${token}`;
+            const html = await mailTemplate(link);
+            const mail = {
+            email: Email,
+            subject,
+            html,
+           };
+            sendEmail(mail);
 
             // save the user
+            editor.Writers.push(user._id)
+            user.createdBy = editor._id
             
              user.token = token
+             await editor.save()
              const savedUser = await user.save();
-
           
             // return a response
             res.status( 201 ).json( {
-            message: `Check your email: ${savedUser.Email} to verify your account.`,
+            message: `Check your email: ${savedUser.Email.toLowerCase()} to verify your account.`,
             data: savedUser,
-          
+          //  token
         })
-        }
+        
     } catch (error) {
         res.status( 500 ).json( {
             message: error.message
@@ -103,6 +106,7 @@ const createWriter = async ( req, res ) => {
     }
 };
 
+  
  
 // verify email
 const verifyWriterEmail = async (req, res) => {
@@ -164,16 +168,18 @@ const resendVerificationWriterEmail = async (req, res) => {
             const token = await jwt.sign( { Email: Email.toLowerCase() }, process.env.secretKey, { expiresIn: "50m" } );
             
              // send verification email
-             const baseUrl = process.env.BASE_URL
-            const mailOptions = {
-                from: process.env.user,
-                to: Email,
-                subject: "Verify your account",
-                html: `Please click on the link to verify your email: <a href="${req.protocol}://${req.get("host")}/api/users/verify-email/${token}">Verify Email</a>`,
-            };
+             const subject = "Verify your Email";
+            const protocol = req.protocol;
+            const host = req.get("host");
+           const link = `${protocol}://${host}/api/users/verify-email/${token}`;
+            const html = await mailTemplate(link);
+            const mail = {
+            email: Email,
+            subject,
+            html,
+           };
+            sendEmail(mail);
 
-
-            await transporter.sendMail( mailOptions );
 
         res.status( 200 ).json( {
             message: `Verification email sent successfully to your email: ${writer.Email}`
@@ -190,15 +196,15 @@ const resendVerificationWriterEmail = async (req, res) => {
 const userLogin = async (req, res) => {
     try {
       // Extract the username, email, and password from the request body
-      const { UserName, Password } = req.body;
+      const { Email, Password } = req.body;
   
       // Find the writer by their email or username
-      const writer = await writerModel.findOne({ UserName } );
+      const writer = await writerModel.findOne({ Email } );
   
       // Check if the writer exists
       if (!writer) {
         return res.status(404).json({
-          message: `Username/Email is not found`,
+          message: `Email is required to log in`,
         });
       }
   
@@ -292,14 +298,18 @@ const forgotPassword = async (req, res) => {
       const resetToken = await jwt.sign({ writerId: writer._id }, process.env.secretKey, { expiresIn: "30m" });
   
       // Send reset password email
-      const mailOptions = {
-        from:  process.env.user,
-        to: writer.Email,
-        subject: "Password Reset",
-        html: `Please click on the link to reset your password: <a href="${req.protocol}://${req.get("host")}/api/users/reset-password/${resetToken}">Reset Password</a>. This link expires in Thirty(30) minutes.`,
-      };
-  
-      await transporter.sendMail(mailOptions);
+      const subject = "Kindly Reset your PASSWORD";
+            const protocol = req.protocol;
+            const host = req.get("host");
+           const link = `${protocol}://${host}/api/users/reset-pass/${token}`;
+            const html = await mailTemplate(link);
+            const mail = {
+            email: Email,
+            subject,
+            html,
+           };
+            sendEmail(mail);
+
   
       res.status(200).json({
         message: "Password reset email sent successfully"
@@ -398,7 +408,61 @@ const changePassword = async (req, res) => {
     }
   };
   
-
+// get all writers in the database
+const getAllWritersByAnEditor = async (req, res) =>{
+    try{
+        const {editorId} = req.user
+        console.log(editorId)
+      const allwriters = await writerModel.find({Createdby: editorId});
+      if(allwriters.length === 0){
+         res.status(404).json({
+          message: `There are No Writers by this editor ${editorId} in the Database`
+         })
+      }else{
+        res.status(200).json({
+          message: `These are the available Writers by this editor ${editorId} in the Database, they are ${allwriters.length} in number`,
+          data: allwriters
+        })
+      }
+  
+    }catch(error){
+      res.status(500).json({
+        message: error.message
+      })
+    }
+  }
+  
+  // get one writer from the database
+  
+  const getAWriterbyAnEditor = async (req, res) => {
+    try{
+      const { id } = req.user;
+      console.log(id)
+      const editor = await editorModel.findById(id)
+      if(!editor){
+        return res.status(200).json({
+            message: `The editor you are trying to find does not exist.`
+        })
+      }
+      const writerId = req.params.writerId
+      console.log(writerId)
+      const oneWriter = await writerModel.findById(writerId)
+      if (oneWriter.createdBy.toString() !== editor._id.toString()){
+        return res.status(404).json({
+          message: `You are Unauthorized to perform this action`
+        })
+      }else{
+        res.status(200).json({
+          message: `This is the information about the Writer searched for`,
+          data: oneWriter
+        })
+      }
+    }catch(error){
+      res.status(500).json({
+        message: error.message
+      })
+    }
+  };
 
 
 
@@ -410,6 +474,8 @@ module.exports = {
     userLogin,
     forgotPassword,
     changePassword,
-    resetPassword
+    resetPassword,
+    getAllWritersByAnEditor,
+    getAWriterbyAnEditor,
 
 }

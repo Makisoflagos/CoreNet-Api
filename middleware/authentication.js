@@ -33,8 +33,8 @@ const authentication = async (req, res, next) => {
 
 const authenticate = async (req, res, next) => {
     try{
-        const id = req.params.editorId
-    const editor = await editorModel.findById(id);
+        
+    const editor = await editorModel.findById(req.params.editorId);
     console.log(editor)
     const editorToken = editor.token
 
