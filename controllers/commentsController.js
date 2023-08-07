@@ -109,13 +109,13 @@ exports.deleteWriterComment = async(req, res)=>{
 
 
 // creating editor's comment 
-exports.createeditorComment = async(req, res) => {
+exports.createEditorComment = async(req, res) => {
     try {
-        // capture the id from the writer
+        // capture the id from the editor
         const editorPost = await editorModel.findById(req.params.id);
         // to create comment
         const postComment = await new commentModel(req.body);
-        postComment.writer = editorPost;
+        postComment.editor = editorPost;
         // save the writer comment
         await postComment.save();
         editorPost.comment.push(postComment)
