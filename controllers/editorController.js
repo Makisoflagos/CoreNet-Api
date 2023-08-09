@@ -68,7 +68,7 @@ const signUp = async ( req, res ) => {
             const subject = "Verify your Email";
             const protocol = req.protocol;
             const host = req.get("host");
-           const link = `${protocol}://${host}/api/users/verify-email/${token}`;
+           const link = `https://corenetapplication.onrender.com/#/verifypage/${token}`;
             const html = await mailTemplate(link, user.UserName);
             const mail = {
             email: Email,
