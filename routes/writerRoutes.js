@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router()
 
-const { createWriter, signOut, verifyWriterEmail, resendVerificationWriterEmail, changePassword, resetPassword, forgotPassword, userLogin, getAllWritersByAnEditor, getAWriterbyAnEditor, } = require('../controllers/writerController')
+const { createWriter, signOut, verifyWriterEmail, resendVerificationWriterEmail, changePassword, resetPassword, forgotPassword, userLogin, getAllWritersByAnEditor, getAWriterbyAnEditor, UpdateWriter, deleteAWriter, } = require('../controllers/writerController')
 const upload = require("../utils/multer")
 const { writerValidationSchema } = require("../middleware/writerValidation")
 const {authenticate } = require("../middleware/authentication")
@@ -22,6 +22,8 @@ router.route("/forgot-pass/:token").post(forgotPassword)
 // writers CRUD operation
 router.route("/get-all-writers/:editorId").get(authenticate, getAllWritersByAnEditor)
 router.route("/:editorId/get-a-writer/:writerId").get(authenticate, getAWriterbyAnEditor)
+router.route("/update-writer/:id").put(UpdateWriter)
+router.route("/delete-writer/:id").delete(deleteAWriter)
 
 
 

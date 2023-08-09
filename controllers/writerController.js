@@ -9,6 +9,7 @@ const cloudinary = require('../utils/cloudinary');
 const editorModel = require("../models/editorModel")
 const {sendEmail } = require("../middleware/sendingMail")
 const { mailTemplate } = require("../utils/emailtemplate")
+const UploadedFile = require("express-fileupload");
 
 
 
@@ -409,28 +410,30 @@ const changePassword = async (req, res) => {
   };
   
 // get all writers in the database
-const getAllWritersByAnEditor = async (req, res) =>{
-    try{
-        const {editorId} = req.user
-        console.log(editorId)
-      const allwriters = await writerModel.find({Createdby: editorId});
-      if(allwriters.length === 0){
-         res.status(404).json({
-          message: `There are No Writers by this editor ${editorId} in the Database`
-         })
-      }else{
-        res.status(200).json({
-          message: `These are the available Writers by this editor ${editorId} in the Database, they are ${allwriters.length} in number`,
-          data: allwriters
-        })
-      }
-  
-    }catch(error){
-      res.status(500).json({
-        message: error.message
-      })
+const getAllWritersByAnEditor = async (req, res) => {
+    try {
+        const { id }= req.user;
+         console.log(id);
+        
+        const allWriters = await writerModel.find({ createdBy: id});
+
+        // if (allWriters.length === 0) {
+        //     res.status(404).json({
+        //         message: `There are no writers created by this editor ${editorId} in the Database`
+        //     });
+        // } else {
+            res.status(200).json({
+                message: `These are the available writers created by this editor ${id} in the Database. There are ${allWriters.length} in number.`,
+                data: allWriters
+            });
+        // }
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
     }
-  }
+};
+
   
   // get one writer from the database
   
@@ -464,6 +467,89 @@ const getAllWritersByAnEditor = async (req, res) =>{
     }
   };
 
+//   update a writer
+
+const UpdateWriter = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const updatedWriter = await writerModel.findById(id);
+      if (!updatedWriter) {
+        return res.status(404).json({
+          message: `User with id: ${id} not found`,
+        });
+      }
+  
+      
+    //  get the information from the req.body
+    const {UserName, FullName, Email, } = req.body
+  
+    // const UserNameExists = await writerModel.findOne({ UserName })
+    // // check if the Username is present in the database
+  
+    //       // if (UserNameExists) {
+    //       //     return res.status(201).json({
+    //       //         message: `Username already exists.`
+    //       //     })
+    //       // }
+          // check if email exists in the databse
+          const emailExists = await editorModel.findOne({ Email })
+          if (emailExists) {
+              return res.status(400).json({
+                  message: `Email already exists.`
+              })
+          }
+        
+          const file = req.files.ProfileImage
+          const result = await cloudinary.uploader.upload(file.tempFilePath)
+            
+          const writerData = {
+            FullName: FullName || updatedWriter.FullName,
+            UserName: UserName || updatedEditor.UserName,
+            Email: Email || updatedEditor.Email,
+            ProfileImage: result.secure_url,
+            PublicId : result.public_id // Fix typo in 'public_id'
+          };
+          console.log(writerData)
+       
+      
+          const newWriter = await writerModel.findByIdAndUpdate(
+            id,
+            writerData,
+            { new: true }
+          );
+      
+          res.status(200).json({
+            message: `Writer with id ${id} has been updated`,
+            data: newWriter,
+          });
+        } catch (err) {
+          res.status(500).json({
+            Error: err.message,
+          });
+        }
+      };
+      
+      // delete a writer
+      const deleteAWriter = async(req, res) => {
+       try{
+        const id = req.params.id
+        const Writer = await writerModel.findById(id)
+        if(Writer.ProfileImage){
+        const result = await cloudinary.uploader.destroy(Writer.PublicId)
+        }
+        const deletedWriter = await writerModel.findByIdAndDelete(Writer)
+        res.status(200).json({
+          message: `Deleted the writer with this id ${id} successfully`,
+          data: deletedWriter
+        })
+       }catch(err){
+        res.status(500).json({
+          Error: err.message,
+        });
+       }
+      }
+
 
 
 module.exports = {
@@ -477,5 +563,7 @@ module.exports = {
     resetPassword,
     getAllWritersByAnEditor,
     getAWriterbyAnEditor,
+     UpdateWriter,
+    deleteAWriter,
 
 }
