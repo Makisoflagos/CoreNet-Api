@@ -13,9 +13,21 @@ const TaskSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    taskTimeout: {
+        type: Number,
+        default: 0
+    },
     isComplete: {
        type: Boolean,
        default: false
+    },
+    isActive: {
+        type: Boolean,
+        default: false
+    },
+    isPending: {
+        type: Boolean,
+        default: false
     },
     editor: {
         type: mongoose.SchemaTypes.ObjectId,

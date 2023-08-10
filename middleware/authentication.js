@@ -66,6 +66,7 @@ const authenticate = async (req, res, next) => {
 const checkUser = (req, res, next) => {
     authentication(req, res, async () => {
         if(req.user.isAdmin || req.user.isSuperAdmin){
+            
             next()
         }else{
             res.status(400).json({
