@@ -8,7 +8,11 @@ exports.createWriterComment = async(req, res) => {
         // capture the id from the writer
         const writerPost = await writerModel.findById(req.params.id);
         // to create comment
-        const postComment = await new commentModel(req.body);
+        const {comment} = await commentModel(req.body)
+        //const postComment = await new commentModel(req.body);
+        const postComment = await new commentModel({comment:comment});
+        
+        
         postComment.writer = writerPost;
         // save the writer comment
         await postComment.save();
@@ -17,7 +21,7 @@ exports.createWriterComment = async(req, res) => {
         await writerPost.save();
         res.status(201).json({
             message: "comment sent",
-            data: writerPost
+            data:  postComment
         })
 
     } catch (error) {
@@ -114,7 +118,8 @@ exports.createEditorComment = async(req, res) => {
         // capture the id from the editor
         const editorPost = await editorModel.findById(req.params.id);
         // to create comment
-        const postComment = await new commentModel(req.body);
+        const {comment} = await commentModel(req.body)
+        const postComment = await new commentModel({comment:comment});
         postComment.editor = editorPost;
         // save the writer comment
         await postComment.save();
@@ -123,7 +128,7 @@ exports.createEditorComment = async(req, res) => {
         await editorPost.save();
         res.status(201).json({
             message: "comment sent",
-            data: editorPost
+            data: postComment
         })
 
     } catch (error) {

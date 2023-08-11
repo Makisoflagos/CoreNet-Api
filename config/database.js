@@ -3,7 +3,7 @@ const mongoose = require( 'mongoose' );
 
 const username = process.env.ATLAS_USERNAME
 const password = process.env.ATLAS_PASSWORD
-const url2 = `mongodb+srv://${username}:${password}@cluster0.tk57bma.mongodb.net/`
+const url2 = `mongodb+srv://${username}:${password}@cluster0.s9n8slk.mongodb.net/`
 
 mongoose.connect( url2 ).then( () => {
     console.log('Database is successfully connected.')
