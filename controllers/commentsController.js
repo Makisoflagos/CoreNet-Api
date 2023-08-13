@@ -6,19 +6,19 @@ const editorModel = require('../models/editorModel');
 exports.createWriterComment = async(req, res) => {
     try {
         // capture the id from the writer
-        const writerPost = await writerModel.findById(req.params.id);
+        const writerId = await writerModel.findById(req.params.id);
         // to create comment
         const {comment} = await commentModel(req.body)
         //const postComment = await new commentModel(req.body);
         const postComment = await new commentModel({comment:comment});
         
         
-        postComment.writer = writerPost;
+        postComment.writer = writerId;
         // save the writer comment
         await postComment.save();
-        writerPost.comment.push(postComment)
+        writerId.comment.push(postComment)
         //save the writer post
-        await writerPost.save();
+        await writerId.save();
         res.status(201).json({
             message: "comment sent",
             data:  postComment
@@ -35,9 +35,14 @@ exports.createWriterComment = async(req, res) => {
 // get all the writer comments
 exports.allWriterComments = async(req, res)=>{
     try{
+        const writerId = await writerModel.findById(req.params.id)
         const allComents = await commentModel.find()
+        if (writerId){
+            return allComents
+        }
+        if (allComents)
         res.status(201).json({
-            message: "All comments posted",
+            message: `All available comments posted is ${allComents.length}`,
             data: allComents
         })
     } catch (error) {
@@ -50,9 +55,13 @@ exports.allWriterComments = async(req, res)=>{
 
 // get a single post comments
 exports.singleWriterComment = async(req, res)=>{
-    try{
+    try{  
+        const writerId = await writerModel.findById(req.params.id)
         const singleComent = await commentModel.findById(req.params.id)
-        res.status(201).json({
+;        if (writerId)
+         return singleComent
+
+            res.status(201).json({
             message: "Single comment",
             data: singleComent
         })
@@ -67,7 +76,11 @@ exports.singleWriterComment = async(req, res)=>{
 // to update comment
 exports.updateWriterComment = async(req, res) => {
     try {
+      const writerId = await writerModel.findById(req.params.id)
       const updateCom = await commentModel.findByIdAndUpdate(req.params.id, req.body, {new: true})
+      if (writerId){
+        return updateCom
+      }
       updateCom.save();
       
       if (!updateCom){
@@ -89,18 +102,16 @@ exports.updateWriterComment = async(req, res) => {
 
 // delete comment
 exports.deleteWriterComment = async(req, res)=>{
-    try{
-        const commentId = req.params.id;
-        const writerId = req.params.id;
-        const writer = await writerModel.findById(writerId);
+    try{    
+        const writerId = await writerModel.findById(req.params.id);
+        
+        const comment = await commentModel.findById(req.params.id)
+        
         // delete the comment
-        const deleteComent = await commentModel.findByIdAndDelete(commentId);
-
-        await writer.comment.push(deleteComent);
-        await writer.save();
-
+            await commentModel.findByIdAndDelete(comment);
+            
         res.status(201).json({
-            message: "comment successfuly deleted",
+            message: `comment successfuly deleted`
         })
     } catch (error){
         res.status(401).json({
@@ -142,9 +153,14 @@ exports.createEditorComment = async(req, res) => {
 // get all the editor comments
 exports.allEditorComments = async(req, res)=>{
     try{
+        const editorId = await editorModel.findById(req.params.id)
         const allComents = await commentModel.find()
+        if (editorId){
+            return allComents
+        }
+        if (allComents)
         res.status(201).json({
-            message: "All comments posted",
+            message: `All available comments posted is ${allComents.length}`,
             data: allComents
         })
     } catch (error) {
@@ -158,8 +174,12 @@ exports.allEditorComments = async(req, res)=>{
 // get a single post comments
 exports.singleEditorComment = async(req, res)=>{
     try{
+        const editorId = await editorModel.findById(req.params.id)
         const singleComent = await commentModel.findById(req.params.id)
-        res.status(201).json({
+;        if (editorId)
+         return singleComent
+
+            res.status(201).json({
             message: "Single comment",
             data: singleComent
         })
@@ -174,19 +194,23 @@ exports.singleEditorComment = async(req, res)=>{
 // to update comment
 exports.updateEditorComment = async(req, res) => {
     try {
-      const updateCom = await commentModel.findByIdAndUpdate(req.params.id, req.body, {new: true})
-      updateCom.save();
-      
-      if (!updateCom){
-        res.status(400).json({
-            message: "Error tring to update comment"
-        })
-      } else {
-        res.status(201).json({
-            message: "Comment successfully updated",
-            data: updateCom
-        })
-      }
+        const editorId = await editorModel.findById(req.params.id)
+        const updateCom = await commentModel.findByIdAndUpdate(req.params.id, req.body, {new: true})
+        if (editorId){
+          return updateCom
+        }
+        updateCom.save();
+        
+        if (!updateCom){
+          res.status(400).json({
+              message: "Error tring to update comment"
+          })
+        } else {
+          res.status(201).json({
+              message: "Comment successfully updated",
+              data: updateCom
+          })
+        }
     } catch (error) {
         res.status(400).json({
             message: error.message
@@ -197,17 +221,15 @@ exports.updateEditorComment = async(req, res) => {
 // delete comment
 exports.deleteEditorComment = async(req, res)=>{
     try{
-        const commentId = req.params.id;
-        const EditorId = req.params.id;
-        const editor = await editorModel.findById(EditorId);
+        const editorId = await editorModel.findById(req.params.id);
+        
+        const comment = await commentModel.findById(req.params.id)
+        
         // delete the comment
-        const deleteComent = await commentModel.findByIdAndDelete(commentId);
-
-        await editor.comment.push(deleteComent);
-        await editor.save();
-
+            await commentModel.findByIdAndDelete(comment);
+            
         res.status(201).json({
-            message: "comment successfuly deleted",
+            message: `comment successfuly deleted`
         })
     } catch (error){
         res.status(401).json({
