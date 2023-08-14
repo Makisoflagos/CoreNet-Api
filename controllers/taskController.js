@@ -3,6 +3,8 @@ const writerModel =require("../models/writerModel")
 const nodemailer=require("nodemailer")
 const {sendEmail}=require("../middleware/sendingMail")
 const editorModel = require("../models/editorModel")
+const jwt = require("jsonwebtoken")
+const { acceptMail } = require("../utils/acceptMail")
 
 
 
@@ -48,6 +50,28 @@ const editorModel = require("../models/editorModel")
 
             
         });
+
+        // create a token
+        const token = jwt.sign({
+            taskId: newTask._id
+
+        },
+        process.env.secretKey, { expiresIn: "1 day" },
+        );
+        newTask.token = token
+
+        // send verification mail
+        const subject = "You've got a New Task";
+        const protocol = req.protocol;
+        const host = req.get("host");
+        const link = `${protocol}://${host}/accepttask/${token}`;
+        const html = await acceptMail(link, writer.UserName)
+        const mail = {
+            email: writer.Email,
+            subject,
+            html
+        };
+        sendEmail(mail)
 
         // push into the array
         editor.task.push(newTask._id)
