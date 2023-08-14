@@ -9,6 +9,9 @@ const CommentSchema = new mongoose.Schema({
            type: String,
         required: true
     },
+    reply: [{
+        type: String,
+    }],
     editor: {
         type: mongoose.SchemaTypes.ObjectId,
         ref: "Editors"

@@ -10,6 +10,7 @@ const editorModel = require("../models/editorModel")
 const {sendEmail } = require("../middleware/sendingMail")
 const { mailTemplate } = require("../utils/emailtemplate")
 const UploadedFile = require("express-fileupload");
+const taskModel = require("../models/taskModel")
 
 
 
@@ -531,24 +532,41 @@ const UpdateWriter = async (req, res) => {
       };
       
       // delete a writer
-      const deleteAWriter = async(req, res) => {
-       try{
-        const id = req.params.id
-        const Writer = await writerModel.findById(id)
-        if(Writer.ProfileImage){
-        const result = await cloudinary.uploader.destroy(Writer.PublicId)
+      const deleteAWriter = async (req, res) => {
+        try {
+          const writerId = req.params.id;
+      
+          // Find the writer by ID
+          const writer = await writerModel.findById(writerId);
+          if (!writer) {
+            return res.status(404).json({
+              message: `Writer with id ${writerId} not found`
+            });
+          }
+      
+          // Delete associated tasks
+          const deletedTasks = await taskModel.deleteMany({ writer: writer._id });
+      
+          // Delete writer's profile image if exists
+          if (writer.ProfileImage) {
+            const result = await cloudinary.uploader.destroy(writer.PublicId);
+          }
+      
+          // Delete the writer
+          const deletedWriter = await writerModel.findByIdAndDelete(writerId);
+      
+          res.status(200).json({
+            message: `Deleted the writer with id ${writerId} successfully`,
+            deletedWriter,
+            deletedTasks
+          });
+        } catch (err) {
+          res.status(500).json({
+            Error: err.message
+          });
         }
-        const deletedWriter = await writerModel.findByIdAndDelete(Writer)
-        res.status(200).json({
-          message: `Deleted the writer with this id ${id} successfully`,
-          data: deletedWriter
-        })
-       }catch(err){
-        res.status(500).json({
-          Error: err.message,
-        });
-       }
-      }
+      };
+      
 
 
 

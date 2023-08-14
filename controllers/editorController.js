@@ -9,6 +9,8 @@ const cloudinary = require('../utils/cloudinary');
 const UploadedFile = require("express-fileupload");
 const { sendEmail } = require("../middleware/sendingMail")
 const { mailTemplate } = require("../utils/emailtemplate")
+const writerModel = require("../models/writerModel")
+const taskModel = require("../models/taskModel")
 
 
 // SignUp
@@ -157,7 +159,7 @@ const resendVerificationEmail = async (req, res) => {
              const subject = "Verify your Email";
              const protocol = req.protocol;
              const host = req.get("host");
-            const link = `${protocol}://${host}/api/users/verify-email/${token}`;
+            const link = `https://corenetapplication.onrender.com/#/verifypage/${token}`;
              const html = await mailTemplate(link);
              const mail = {
              email: Email,
@@ -205,12 +207,12 @@ const userLogin = async (req, res) => {
       });
     }
     
-    // // Check if user is verified
-    // if (!editor.isVerified) {
-    //   return res.status(404).json({
-    //       message: `User with ${editor.Email} is not verified`,
-    //   });
-    // }
+    // Check if user is verified
+    if (!editor.isVerified) {
+      return res.status(404).json({
+          message: `User with ${editor.Email} is not verified`,
+      });
+    }
 
     // Generate a JWT token with the editor's ID and other information
     const token = jwt.sign(
@@ -515,24 +517,45 @@ const UpdateEditor = async (req, res) => {
     };
     
     // delete an editor 
-    const deleteAnEditor = async(req, res) => {
-     try{
-      const id = req.params.id
-      const Editor = await editorModel.findById(id)
-      if(Editor.ProfileImage){
-      const result = await cloudinary.uploader.destroy(Editor.PublicId)
+    const deleteAnEditor = async (req, res) => {
+      try {
+        const editorId = req.params.id;
+    
+        // Find the editor by ID
+        const editor = await editorModel.findById(editorId);
+        if (!editor) {
+          return res.status(404).json({
+            message: `Editor with id ${editorId} not found`
+          });
+        }
+    
+        // Delete associated writers
+        const deletedWriters = await writerModel.deleteMany({ createdBy: editor._id });
+    
+        // Delete associated tasks
+        const deletedTasks = await taskModel.deleteMany({ editor: editor._id });
+    
+        // Delete editor's profile image if exists
+        if (editor.ProfileImage) {
+          const result = await cloudinary.uploader.destroy(editor.PublicId);
+        }
+    
+        // Delete the editor
+        const deletedEditor = await editorModel.findByIdAndDelete(editorId);
+    
+        res.status(200).json({
+          message: `Deleted the editor with id ${editorId} successfully`,
+          deletedEditor,
+          deletedWriters,
+          deletedTasks
+        });
+      } catch (err) {
+        res.status(500).json({
+          Error: err.message
+        });
       }
-      const deletedEditor = await editorModel.findByIdAndDelete(Editor)
-      res.status(200).json({
-        message: `Deleted the editor with this id ${id} successfully`,
-        data: deletedEditor
-      })
-     }catch(err){
-      res.status(500).json({
-        Error: err.message,
-      });
-     }
-    }
+    };
+    
 // export the function
 
 module.exports = {

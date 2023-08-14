@@ -36,13 +36,15 @@ const editorModel = require("../models/editorModel")
 
         const { Title, Description, taskTimeout } = req.body;
 
+        const taskTimeoutInMilliseconds = taskTimeout * 60 * 60 * 1000;
+
         // create a new task
         const newTask = new taskModel({
             Title: Title,
             Description: Description,
             editor: editor._id, 
             writer: writer._id,
-            taskTimeout
+            taskTimeout: taskTimeoutInMilliseconds
 
             
         });
@@ -172,6 +174,31 @@ const updateTask = async (req, res) => {
         })
       }
 }
+
+// delete a task
+const deleteTask = async (req, res) => {
+    try{
+        const taskId = req.params.taskId
+
+        const task = await taskModel.findById(taskId)
+
+        if (!task) {
+            return res.status(404).json({
+              message: `The task  with id ${taskId} not found`
+            });
+          }
+          const deletedTask = await taskModel.findByIdAndDelete(taskId);
+
+          res.status(200).json({
+            message: `Task deleted successfully`,
+            deletedTask
+          })
+    }catch(error){
+        res.status(500).json({
+            message: error.message
+          })
+    }
+}
     
 
 module.exports = {
@@ -179,4 +206,5 @@ module.exports = {
     AcceptTask,
     getOneTask,
     updateTask,
+    deleteTask
 }
