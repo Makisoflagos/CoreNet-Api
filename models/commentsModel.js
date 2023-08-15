@@ -9,9 +9,13 @@ const CommentSchema = new mongoose.Schema({
            type: String,
         required: true
     },
-    reply: [{
-        type: String,
-    }],
+    // reply: [{
+    //     type: String,
+    // }],
+    createdBy : {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "User"
+    },
     editor: {
         type: mongoose.SchemaTypes.ObjectId,
         ref: "Editors"
@@ -19,7 +23,10 @@ const CommentSchema = new mongoose.Schema({
     writer: {
         type: mongoose.SchemaTypes.ObjectId,
         ref: "Writers"
-}
+},
+    role: {
+        type: String,
+    }
 }, 
 {
     timestamps: true

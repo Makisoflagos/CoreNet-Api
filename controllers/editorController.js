@@ -208,11 +208,11 @@ const userLogin = async (req, res) => {
     }
     
     // Check if user is verified
-    if (!editor.isVerified) {
-      return res.status(404).json({
-          message: `User with ${editor.Email} is not verified`,
-      });
-    }
+    // if (!editor.isVerified) {
+    //   return res.status(404).json({
+    //       message: `User with ${editor.Email} is not verified`,
+    //   });
+    // }
 
     // Generate a JWT token with the editor's ID and other information
     const token = jwt.sign(

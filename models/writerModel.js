@@ -30,6 +30,10 @@ const writerSchema = new mongoose.Schema({
         type: String,
 
     },
+    role: {
+        type: String,
+        default: "Writer"
+    },
     createdBy: {
         type: mongoose.SchemaTypes.ObjectId, 
         ref: 'Editors'

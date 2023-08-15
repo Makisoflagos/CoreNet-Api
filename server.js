@@ -8,6 +8,7 @@ const taskRoute = require('./routes/taskRouter')
 const commentRoute = require("./routes/commentRouter")
 const cors = require("cors")
 const fileUpload = require('express-fileupload')
+const morgan = require ("morgan")
 
 
 // give your port a number
@@ -16,6 +17,7 @@ const PORT = 5697;
 
 const app = express();
 app.use(cors({origin:"*"}))
+app.use(morgan("dev"))
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use(fileUpload({useTempFiles: true}));
