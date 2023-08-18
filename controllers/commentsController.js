@@ -70,7 +70,7 @@ const CreateCommentWriter =  async (req, res) => {
     } catch (error) {
       res.status(500).json({ 
         message: error.message });
-    }
+    }z
   };
 
 // Reply to a comment
@@ -78,7 +78,7 @@ const CreateCommentWriter =  async (req, res) => {
 const replyCommentEditor = async (req, res) => {
     try {
       const { comment } = req.body;
-      const taskId = req.params.taskId;
+      
       const commentId = req.params.commentId;
       const editor = await editorModel.findById(req.params.editorId)
   

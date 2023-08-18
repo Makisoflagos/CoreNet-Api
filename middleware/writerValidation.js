@@ -13,9 +13,11 @@ const writerValidationSchema = (req, res, next) => {
     "any.required": "Email is required.",
     "string.email": "Invalid email format.",
   }),
-  Password: Joi.string().required().messages({
+  Password: Joi.string()
+  .pattern(new RegExp("^(?=.*[!@#$%^&*])(?=.*[A-Z]).{8,}$"))
+  .required().messages({
     "any.required": "Password is required.",
-     
+    "String.pattern.base": "Password must contain at least 8 characters, one Capital letter, and one special character (!@#$%^&*)."
     }),
     
     });

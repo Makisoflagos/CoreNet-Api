@@ -36,7 +36,11 @@ const TaskSchema = new mongoose.Schema({
     writer: {
         type: mongoose.SchemaTypes.ObjectId,
         ref: "Writers"
-}
+},
+    comment: {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "Comments"
+    }
 }, 
 {
     timestamps: true

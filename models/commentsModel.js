@@ -26,6 +26,10 @@ const CommentSchema = new mongoose.Schema({
 },
     role: {
         type: String,
+    },
+    task: {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "Tasks"
     }
 }, 
 {

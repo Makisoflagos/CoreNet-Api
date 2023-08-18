@@ -164,6 +164,27 @@ const getOneTask = async (req, res) => {
     }
   };
 
+//   get all tasks
+const getAllTasks = async (req, res) => {
+    try{
+         const writerId = req.params.writerId
+         const allTasks = await taskModel.find({writer: writerId})
+         if(!allTasks){
+            return res.status(404).json({
+                message: `Tasks not found`
+            })
+         }else{
+            res.status(200).json({
+                message: ` These are all the tasks assigned to this writer`,
+                data: allTasks
+            })
+         }
+    }catch(error){
+        res.status(500).json({
+          message: error.message
+        })
+      }
+};
 
 // update a task
 const updateTask = async (req, res) => {

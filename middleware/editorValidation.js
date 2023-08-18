@@ -16,9 +16,12 @@ const validationMiddleware = (req, res, next) => {
       UserName: Joi.string().required().messages({
         "any.required": "Username is required.",
       }),
-      Password: Joi.string().required().messages({
-        "any.required": "Password is required.",
-      }),
+      Password: Joi.string()
+    .pattern(new RegExp("^(?=.*[!@#$%^&*])(?=.*[A-Z]).{8,}$"))
+    .required().messages({
+    "any.required": "Password is required.",
+    "String.pattern.base": "Password must contain at least 8 characters, one Capital letter, and one special character (!@#$%^&*)."
+    }),
      CompanyName: Joi.string().required().messages({
             "any.required": "CompanyName is required.",
             
