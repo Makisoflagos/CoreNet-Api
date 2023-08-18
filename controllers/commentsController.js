@@ -7,20 +7,26 @@ exports.createWriterComment = async(req, res) => {
     try {
         // capture the id from the writer
         const writerId = await writerModel.findById(req.params.id);
+        const edithor = await editorModel.findById(req.params.id);
         // to create comment
         const {comment} = await commentModel(req.body)
         //const postComment = await new commentModel(req.body);
         const postComment = await new commentModel({comment:comment});
         
-        
-        postComment.writer = writerId;
+        if (writerId.isVerified !== true){
+            return res.status(404).json({
+                message: "Writer not verified"
+            })
+        } else {
+        postComment.writer;
         // save the writer comment
         await postComment.save();
         writerId.comment.push(postComment)
         //save the writer post
         await writerId.save();
+        }
         res.status(201).json({
-            message: "comment sent",
+            message: "comment posted",
             data:  postComment
         })
 
@@ -40,7 +46,7 @@ exports.allWriterComments = async(req, res)=>{
         if (writerId){
             return allComents
         }
-        if (allComents)
+        
         res.status(201).json({
             message: `All available comments posted is ${allComents.length}`,
             data: allComents
@@ -131,16 +137,23 @@ exports.createEditorComment = async(req, res) => {
         // to create comment
         const {comment} = await commentModel(req.body)
         const postComment = await new commentModel({comment:comment});
+        if (editorPost.isVerified !== true){
+            return res.status(404).json({
+                message: "Editor not verified"
+            })
+        } else {
         postComment.editor = editorPost;
         // save the writer comment
         await postComment.save();
         editorPost.comment.push(postComment)
         //save the writer post
         await editorPost.save();
+        }
         res.status(201).json({
             message: "comment sent",
             data: postComment
         })
+    
 
     } catch (error) {
         res.status(400).json({
