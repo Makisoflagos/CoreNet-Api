@@ -217,7 +217,6 @@ const userLogin = async (req, res) => {
     // Generate a JWT token with the editor's ID and other information
     const token = jwt.sign(
       {
-
         id: editor._id,
         UserName: editor.UserName,
         Email: editor.Email,
@@ -289,7 +288,7 @@ const forgotPassword = async (req, res) => {
       // Generate a reset token
       const resetToken = await jwt.sign({
          editorId: editor._id,
-         Email: editor.Email
+         Email: editor.Email.toLowerCase()
          }, 
          process.env.secretKey, { expiresIn: "30m" });
   
@@ -297,7 +296,7 @@ const forgotPassword = async (req, res) => {
       const subject = "Reset Password";
       const protocol = req.protocol;
       const host = req.get("host");
-     const link = `${protocol}://${host}/api/users/reset-password/${token}`;
+     const link = `${protocol}://${host}/api/users/reset-password/${resetToken}`;
       const html = await mailTemplate(link);
       const mail = {
       email: Email,
@@ -393,7 +392,7 @@ const changePassword = async (req, res) => {
       await editor.save();
   
       res.status(200).json({
-        message: "Password changed successful"
+        message: "Password changed successfully"
       });
     } catch (error) {
       console.error("Something went wrong", error.message);
