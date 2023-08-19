@@ -217,6 +217,7 @@ const userLogin = async (req, res) => {
     // Generate a JWT token with the editor's ID and other information
     const token = jwt.sign(
       {
+
         id: editor._id,
         UserName: editor.UserName,
         Email: editor.Email,
@@ -286,7 +287,11 @@ const forgotPassword = async (req, res) => {
       }
   
       // Generate a reset token
-      const resetToken = await jwt.sign({ editorId: editor._id }, process.env.secretKey, { expiresIn: "30m" });
+      const resetToken = await jwt.sign({
+         editorId: editor._id,
+         Email: editor.Email
+         }, 
+         process.env.secretKey, { expiresIn: "30m" });
   
       // Send reset password email
       const subject = "Reset Password";

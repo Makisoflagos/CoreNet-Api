@@ -127,9 +127,11 @@ const AcceptTask = async (req, res) => {
             };
             if(task.isComplete){
                 task.isActive = false;
-                task.isPending = false
+                task.isPending = false;
+                task.taskTimeout = 0
                 task.save()
-            }
+            };
+
         }, task.taskTimeout); 
 
         res.status(200).json({

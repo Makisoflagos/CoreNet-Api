@@ -80,35 +80,51 @@ const replyCommentEditor = async (req, res) => {
       const { comment } = req.body;
       
       const commentId = req.params.commentId;
-      const editor = await editorModel.findById(req.params.editorId)
-  
-      // Check if the task and comment exist
-      const task = await taskModel.findById(taskId);
-      if (!task) {
-        return res.status(404).json({
-             message: 'Task not found' 
-            });
-      }
-  
+      const writerId = req.params.writerId
+      
       const commented = await commentModel.findById(commentId);
       if (!commented) {
         return res.status(404).json({ 
             message: 'Comment not found' 
         });
+    }
+      // Check if the task and comment exist
+      const task = await taskModel.findById(commented.task);
+      if (!task) {
+        return res.status(404).json({
+             message: 'Task not found' 
+            });
       }
+      const writer = await writerModel.findById(writerId)
+      const editor = await editorModel.findById(task.editor)
+      let newReply = "";
+      if(writer){
+        const newReply = new commentModel({
+            text,
+            createdBy: writer._id,
+            task: task._id,
+            role: writer.role,
+        });
+        newReply : newReply
+
+      }else{
+        const newReply = new commentModel({
+            text,
+            createdBy: editor._id,
+            task: task._id,
+            role: editor.role,
+    
+            newReply : newReply
+          });
+
+      }
+
   
       // Create the reply
-      const newReply = new commentModel({
-        text,
-        createdBy: editor._id,
-        task: task._id,
-        role: editor.role,
-
-
-      });
+     
   
       // Set the parent comment for the reply
-      newReply.comment = comment._id;
+      newReply : newReply.comment = comment._id;
   
       await newReply.save();
   
@@ -123,5 +139,6 @@ module.exports = {
   CreateCommentEditor,
   CreateCommentWriter,
   replyCommentEditor,
+
 };
 

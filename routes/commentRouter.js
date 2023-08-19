@@ -10,7 +10,8 @@ const {CreateCommentWriter} = require("../controllers/commentsController")
 
 
 // // editor comment route
-router.route("/:id/create-editor-comment/:editorId").post(CreateCommentEditor)
+router.route("/:id/create-editor-comment/:editorId").post(CreateCommentEditor);
+router.route("/")
 // router.route("/:")
 // router.route("/all-editor-comments").get(allEditorComments)
 // router.route("/single-editor-comment/:id").get(singleEditorComment)
