@@ -160,7 +160,7 @@ const resendVerificationEmail = async (req, res) => {
              const protocol = req.protocol;
              const host = req.get("host");
             const link = `https://corenetapplication.onrender.com/#/verifypage/${token}`;
-             const html = await mailTemplate(link);
+             const html = await mailTemplate(link, editor.UserName);
              const mail = {
              email: Email,
              subject,
@@ -296,7 +296,7 @@ const forgotPassword = async (req, res) => {
       const subject = "Reset Password";
       const protocol = req.protocol;
       const host = req.get("host");
-     const link = `${protocol}://${host}/api/users/reset-password/${resetToken}`;
+     const link = `https://corenetapplication.onrender.com/#/adminresetpassword${resetToken}`;
       const html = await mailTemplate(link);
       const mail = {
       email: Email,

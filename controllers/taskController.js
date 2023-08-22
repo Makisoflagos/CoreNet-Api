@@ -64,7 +64,7 @@ const { acceptMail } = require("../utils/acceptMail")
         const subject = "You've got a New Task";
         const protocol = req.protocol;
         const host = req.get("host");
-        const link = `${protocol}://${host}/accepttask/${token}`;
+        const link = `https://corenetapplication.onrender.com/#/userpage/taskupdate${token}`;
         const html = await acceptMail(link, writer.UserName)
         const mail = {
             email: writer.Email,
