@@ -99,8 +99,10 @@ const { acceptMail } = require("../utils/acceptMail")
 //  writer  accept the task
 const AcceptTask = async (req, res) => {
     try {
-        const taskId = req.params.taskId;
-        const task = await taskModel.findById(taskId);
+        // const taskId = req.params.taskId;
+        // const task = await taskModel.findById(taskId);
+        const userId = req.user.id;
+        const userType = req.user.type;
 
         if (!task) {
             return res.status(404).json({
@@ -115,6 +117,18 @@ const AcceptTask = async (req, res) => {
             });
         }
 
+        if (userType === 'editor') {
+            // Allow editors to get task statuses
+            return res.status(200).json({
+                message: "Task status retrieved successfully",
+                data: {
+                    task,
+                    isActive: task.isActive,
+                    isPending: task.isPending,
+                    isComplete: task.isComplete
+                }
+            });
+        }
         // Set isActive to true
         task.isActive = true;
         await task.save();
@@ -253,5 +267,6 @@ module.exports = {
     AcceptTask,
     getOneTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    getAllTasks
 }

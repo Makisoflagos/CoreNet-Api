@@ -73,72 +73,66 @@ const CreateCommentWriter =  async (req, res) => {
     }z
   };
 
-// Reply to a comment
 
-const replyCommentEditor = async (req, res) => {
-    try {
+
+  // Reply to a comment
+const replyToComment = async (req, res) => {
+  try {
       const { comment } = req.body;
-      
       const commentId = req.params.commentId;
-      const writerId = req.params.writerId
-      
+      const userId = req.params.userId; // This can be either editorId or writerId
+
       const commented = await commentModel.findById(commentId);
       if (!commented) {
-        return res.status(404).json({ 
-            message: 'Comment not found' 
-        });
-    }
+          return res.status(404).json({
+              message: 'Comment not found'
+          });
+      }
+
       // Check if the task and comment exist
       const task = await taskModel.findById(commented.task);
       if (!task) {
-        return res.status(404).json({
-             message: 'Task not found' 
-            });
-      }
-      const writer = await writerModel.findById(writerId)
-      const editor = await editorModel.findById(task.editor)
-      let newReply = "";
-      if(writer){
-        const newReply = new commentModel({
-            text,
-            createdBy: writer._id,
-            task: task._id,
-            role: writer.role,
-        });
-        newReply : newReply
-
-      }else{
-        const newReply = new commentModel({
-            text,
-            createdBy: editor._id,
-            task: task._id,
-            role: editor.role,
-    
-            newReply : newReply
+          return res.status(404).json({
+              message: 'Task not found'
           });
-
       }
 
-  
+      const user = await (writerModel.findById(userId) || editorModel.findById(userId));
+      if (!user) {
+          return res.status(404).json({
+              message: 'User not found'
+          });
+      }
+
       // Create the reply
-     
-  
-      // Set the parent comment for the reply
-      newReply : newReply.comment = comment._id;
-  
+      const newReply = new commentModel({
+          comment,
+          createdBy: user._id,
+          task: task._id,
+          role: user.role,
+          parentComment: commentId // Set the parent comment for the reply
+      });
+
       await newReply.save();
-  
-      res.status(201).json({ message: 'Reply created successfully', data: newReply });
-    } catch (error) {
+
+      res.status(201).json({ 
+        message: 'Reply created successfully', 
+        data: newReply });
+  } catch (error) {
       res.status(500).json({ message: error.message });
-    }
-  };
+  }
+};
+
+
+
   
 
 module.exports = {
   CreateCommentEditor,
   CreateCommentWriter,
-  replyCommentEditor,
+  replyToComment
 
 };
+
+
 

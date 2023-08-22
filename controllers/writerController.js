@@ -222,12 +222,12 @@ const userLogin = async (req, res) => {
       }
 
       //   check if user is verified
-    // if(!writer.isVerified){
-    //     return res.status(404).json({
-    //         message: `User with ${writer.Email} is not verified`,
+    if(!writer.isVerified){
+        return res.status(404).json({
+            message: `User with ${writer.Email} is not verified`,
             
-    //     })
-    // }
+        })
+    }
   
       // Generate a JWT token with the writer's ID and other information
       const token = jwt.sign(
