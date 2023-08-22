@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const editorModel = require("../models/editorModel");
+const writerModel = require("../models/writerModel")
 
 // to authenticate a user token in the database
 
@@ -7,6 +8,7 @@ const authentication = async (req, res, next) => {
     try{
     const editorId = req.params.adminId;
     const editor = await editorModel.findById(userId);
+    console.log(editor)
     const editorToken = user.token
     
 
@@ -22,6 +24,7 @@ const authentication = async (req, res, next) => {
                 return res.json(err.message)
             }else{
                 req.user = payLoad,
+                console.log(req.user)
                 next()
             }
         })
@@ -47,6 +50,37 @@ const authenticate = async (req, res, next) => {
         }
 
         await jwt.verify(editorToken, process.env.secretKey, (err, payLoad) => {
+
+            if(err){
+                return res.json(err.message)
+            }else{
+                req.user = payLoad,
+                console.log(req.user)
+                next()
+            }
+        })
+    }catch(e){
+        res.status(500).json({
+            error: e.message
+        })
+    }
+}
+
+const authenticator = async (req, res, next) => {
+    try{
+        
+    const writer = await writerModel.findById(req.params.writerId);
+    console.log(writer)
+    const writerToken = writer.token
+    console.log(writer.token)
+
+        if(!writerToken){
+            return res.status(400).json({
+                message: `No Authorization found`
+            })
+        }
+
+        await jwt.verify(writerToken, process.env.secretKey, (err, payLoad) => {
 
             if(err){
                 return res.json(err.message)
@@ -95,6 +129,8 @@ const superAdminAuth = (req, res, next) => {
 module.exports = {
     checkUser,
     authenticate,
-    superAdminAuth
+    superAdminAuth,
+    authenticator 
+
 
 }

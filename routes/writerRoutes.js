@@ -6,7 +6,7 @@ const router = express.Router()
 const { createWriter, signOut, verifyWriterEmail, resendVerificationWriterEmail, changePassword, resetPassword, forgotPassword, userLogin, getAllWritersByAnEditor, getAWriterbyAnEditor, UpdateWriter, deleteAWriter, } = require('../controllers/writerController')
 const upload = require("../utils/multer")
 const { writerValidationSchema } = require("../middleware/writerValidation")
-const {authenticate } = require("../middleware/authentication");
+const {authenticate} = require("../middleware/authentication");
 
 
 
