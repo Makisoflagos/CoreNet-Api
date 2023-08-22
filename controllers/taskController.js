@@ -101,8 +101,6 @@ const AcceptTask = async (req, res) => {
     try {
         const taskId = req.params.taskId;
         const task = await taskModel.findById(taskId);
-        const {id} = req.user;
-        // const userType = req.user.type;
 
         if (!task) {
             return res.status(404).json({
@@ -110,6 +108,7 @@ const AcceptTask = async (req, res) => {
             });
         }
 
+    
         // Assume writer ID is available in req.user
         if (task.writer.toString() !== req.params.writerId) {
             return res.status(403).json({
@@ -117,18 +116,14 @@ const AcceptTask = async (req, res) => {
             });
         }
 
-        // if (userType === 'editor') {
-        //     // Allow editors to get task statuses
-        //     return res.status(200).json({
-        //         message: "Task status retrieved successfully",
-        //         data: {
-        //             task,
-        //             isActive: task.isActive,
-        //             isPending: task.isPending,
-        //             isComplete: task.isComplete
-        //         }
-        //     });
-        // }
+        console.log(task.isActive)
+
+        if(task.isActive === true){
+            return res.status(400).json({
+                error: `Task has already been accepted`
+            })
+        }
+
         // Set isActive to true
         task.isActive = true;
         await task.save();
@@ -219,8 +214,14 @@ const updateTask = async (req, res) => {
                 message: `The Task with this ${taskId} is not in the database`
             })
         }
+        if (task.isComplete === true){
+            return res.status(400).json({
+                error: `This task is already completed`
+            })
+        }
         // const completedTask = await taskModel.findByIdAndUpdate(taskId, task.isComplete = true, {new: true})
         task.isComplete = true;
+        task.isPending = false
         await task.save()
 
         res.status(200).json({
