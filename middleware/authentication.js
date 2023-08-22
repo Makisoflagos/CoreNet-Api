@@ -8,6 +8,7 @@ const authentication = async (req, res, next) => {
     const editorId = req.params.adminId;
     const editor = await editorModel.findById(userId);
     const editorToken = user.token
+    
 
         if(!editorToken){
             return res.status(400).json({
@@ -37,6 +38,7 @@ const authenticate = async (req, res, next) => {
     const editor = await editorModel.findById(req.params.editorId);
     console.log(editor)
     const editorToken = editor.token
+    console.log(editor.token)
 
         if(!editorToken){
             return res.status(400).json({

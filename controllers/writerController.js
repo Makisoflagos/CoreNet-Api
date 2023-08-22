@@ -297,13 +297,16 @@ const forgotPassword = async (req, res) => {
       }
   
       // Generate a reset token
-      const resetToken = await jwt.sign({ writerId: writer._id }, process.env.secretKey, { expiresIn: "30m" });
+      const resetToken = await jwt.sign({ 
+        writerId: writer._id,
+        Email: writer.Email.toLowerCase()
+      }, process.env.secretKey, { expiresIn: "30m" });
   
       // Send reset password email
       const subject = "Kindly Reset your PASSWORD";
             const protocol = req.protocol;
             const host = req.get("host");
-           const link = `${protocol}://${host}/api/users/reset-pass/${token}`;
+           const link = `${protocol}://${host}/api/users/reset-pass/${resetToken}`;
             const html = await mailTemplate(link);
             const mail = {
             email: Email,
@@ -534,38 +537,39 @@ const UpdateWriter = async (req, res) => {
       // delete a writer
       const deleteAWriter = async (req, res) => {
         try {
-          const writerId = req.params.id;
-      
-          // Find the writer by ID
-          const writer = await writerModel.findById(writerId);
-          if (!writer) {
-            return res.status(404).json({
-              message: `Writer with id ${writerId} not found`
+            const writerId = req.params.id;
+    
+            // Find the writer by ID
+            const writer = await writerModel.findById(writerId);
+            if (!writer) {
+                return res.status(404).json({
+                    message: `Writer with id ${writerId} not found`
+                });
+            }
+    
+            // Delete writer's profile image if exists
+            if (writer.ProfileImage) {
+                const result = await cloudinary.uploader.destroy(writer.PublicId);
+            }
+    
+            // Delete associated tasks
+            const deletedTasks = await taskModel.deleteMany({ writer: writer._id });
+    
+            // Delete the writer
+            const deletedWriter = await writerModel.findByIdAndDelete(writerId);
+    
+            res.status(200).json({
+                message: `Deleted the writer with id ${writerId} successfully`,
+                deletedWriter,
+                deletedTasks
             });
-          }
-      
-          // Delete associated tasks
-          const deletedTasks = await taskModel.deleteMany({ writer: writer._id });
-      
-          // Delete writer's profile image if exists
-          if (writer.ProfileImage) {
-            const result = await cloudinary.uploader.destroy(writer.PublicId);
-          }
-      
-          // Delete the writer
-          const deletedWriter = await writerModel.findByIdAndDelete(writerId);
-      
-          res.status(200).json({
-            message: `Deleted the writer with id ${writerId} successfully`,
-            deletedWriter,
-            deletedTasks
-          });
         } catch (err) {
-          res.status(500).json({
-            Error: err.message
-          });
+            res.status(500).json({
+                Error: err.message
+            });
         }
-      };
+    };
+    
       
 
 

@@ -279,6 +279,7 @@ const forgotPassword = async (req, res) => {
   
       // Check if the email exists in the userModel
       const editor = await editorModel.findOne({ Email: Email.toLowerCase() });
+      console.log()
       if (!editor) {
         return res.status(404).json({
           message: "Editor not found"
@@ -297,7 +298,7 @@ const forgotPassword = async (req, res) => {
       const protocol = req.protocol;
       const host = req.get("host");
      const link = `https://corenetapplication.onrender.com/#/adminresetpassword${resetToken}`;
-      const html = await mailTemplate(link);
+      const html = await mailTemplate(link, editor.UserName);
       const mail = {
       email: Email,
       subject,

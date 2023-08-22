@@ -101,7 +101,7 @@ const AcceptTask = async (req, res) => {
     try {
         // const taskId = req.params.taskId;
         // const task = await taskModel.findById(taskId);
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const userType = req.user.type;
 
         if (!task) {

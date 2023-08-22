@@ -24,7 +24,7 @@ router.route("/forgot-pass/:token").post(forgotPassword)
 router.route("/get-all-writers/:editorId").get(authenticate, getAllWritersByAnEditor)
 router.route("/:editorId/get-a-writer/:writerId").get(authenticate, getAWriterbyAnEditor)
 router.route("/update-writer/:id").put(UpdateWriter)
-router.route("/delete-writer/:id").delete(authenticate, deleteAWriter)
+router.route("/delete-writer/:id").delete( deleteAWriter)
 
 
 
