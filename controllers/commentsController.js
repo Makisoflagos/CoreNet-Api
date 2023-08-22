@@ -1,4 +1,4 @@
-// Assuming you have models for Editor, Writer, and Comment
+// call the models you need
 const editorModel = require("../models/editorModel");
 const writerModel = require("../models/writerModel");
 const taskModel = require("../models/taskModel")
@@ -70,7 +70,7 @@ const CreateCommentWriter =  async (req, res) => {
     } catch (error) {
       res.status(500).json({ 
         message: error.message });
-    }z
+    }
   };
 
 
@@ -82,15 +82,17 @@ const replyToComment = async (req, res) => {
       const commentId = req.params.commentId;
       const userId = req.params.userId; // This can be either editorId or writerId
 
-      const commented = await commentModel.findById(commentId);
+      const commented = await commentModel.findById(commentId).populate("task");
       if (!commented) {
           return res.status(404).json({
               message: 'Comment not found'
           });
       }
+      console.log('commented:', commented);
 
       // Check if the task and comment exist
       const task = await taskModel.findById(commented.task);
+      console.log(commented.task)
       if (!task) {
           return res.status(404).json({
               message: 'Task not found'
