@@ -5,8 +5,8 @@ const editorModel = require("../models/editorModel");
 
 const authentication = async (req, res, next) => {
     try{
-    const editorId = req.params.editorId;
-    const editor = await editorModel.findById(editorId);
+    const editorId = req.params.adminId;
+    const editor = await editorModel.findById(userId);
     const editorToken = user.token
 
         if(!editorToken){

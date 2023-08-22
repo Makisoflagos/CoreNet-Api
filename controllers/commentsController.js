@@ -125,7 +125,30 @@ const replyToComment = async (req, res) => {
   }
 };
 
+// delete a comment
+const deleteComment = async (req, res) => {
+  try{
+      const commentId= req.params.commentId
 
+      // find the comment by ID
+      const comment = await commentModel.findById(commentId)
+      if (!comment) {
+          return res.status(404).json({
+            message: `The comment  with id ${commentId} not found`
+          });
+        }
+        const deletedComment = await commentModel.findByIdAndDelete(commentId);
+
+        res.status(200).json({
+          message: `Comment deleted successfully`,
+          deletedComment
+        })
+  }catch(error){
+      res.status(500).json({
+          message: error.message
+        })
+  }
+}
 
   
 

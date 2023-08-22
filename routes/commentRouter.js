@@ -13,17 +13,10 @@ const {CreateCommentWriter} = require("../controllers/commentsController")
 router.route("/:id/create-editor-comment/:editorId").post(CreateCommentEditor);
 router.route("/:commentId/reply-comment/:userId").post (replyToComment)
 
-// router.route("/all-editor-comments").get(allEditorComments)
-// router.route("/single-editor-comment/:id").get(singleEditorComment)
-// router.route("/update-editor-comment/:id").put(updateEditorComment)
-// router.route("/delete-editor-comment/:id").delete(deleteEditorComment)
 
 // writer comment route
 router.route("/:taskId/create-writer-comment/:writerId").post(CreateCommentWriter)
-// router.route("/all-writer-comments").get(allWriterComments)
-// router.route("/single-writer-comment/:id").get(singleWriterComment)
-// router.route("/update-writer-comment/:id").put(updateWriterComment)
-// 
+
 
 
 module.exports = 
