@@ -297,7 +297,7 @@ const forgotPassword = async (req, res) => {
       const subject = "Reset Password";
       const protocol = req.protocol;
       const host = req.get("host");
-     const link = `https://corenetapplication.onrender.com/#/adminresetpassword${resetToken}`;
+     const link = `https://corenetapplication.onrender.com/#/adminresetpassword/${resetToken}`;
       const html = await mailTemplate(link, editor.UserName);
       const mail = {
       email: Email,
