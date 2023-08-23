@@ -5,9 +5,15 @@ const validationMiddleware = (req, res, next) => {
   const schema = Joi.object ({
     FirstName: Joi.string().required().messages({
         "any.required": "First name is required.",
+        "string.empty": "First name cannot be empty.",
+        "string.min": "First name must be at least 3 characters long",
+        "string.pattern.base": "First name cannot start and end with a whitespace"
       }),
       Surname: Joi.string().required().messages({
         "any.required": "Last name is required.",
+        "string.empty": "Surname cannot be empty.",
+        "string.min": "Surname must be at least 3 characters long",
+        "string.pattern.base": "Surname cannot start and end with a whitespace"
       }),
       Email: Joi.string().email().required().messages({
         "any.required": "Email is required.",
@@ -24,6 +30,9 @@ const validationMiddleware = (req, res, next) => {
     }),
      CompanyName: Joi.string().required().messages({
             "any.required": "CompanyName is required.",
+            "string.empty": "CompanyName cannot be empty.",
+            "string.min": "CompanyName must be at least 3 characters long",
+            "string.pattern.base": "CompanyName cannot start and end with a whitespace"
             
           }),
   
