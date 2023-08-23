@@ -197,6 +197,28 @@ const getAllTasks = async (req, res) => {
       }
 };
 
+// get all tasks assigned by editor
+const getAllTasksAssigned = async (req, res) => {
+    try{
+         const editorId = req.params.editorId
+         const allTasks = await taskModel.find({editor: editorId})
+         if(!allTasks){
+            return res.status(404).json({
+                message: `Tasks not found`
+            })
+         }else{
+            res.status(200).json({
+                message: ` These are all the tasks assigned by this editor`,
+                data: allTasks
+            })
+         }
+    }catch(error){
+        res.status(500).json({
+          message: error.message
+        })
+      }
+};
+
 // update a task
 const updateTask = async (req, res) => {
     try{
@@ -269,5 +291,6 @@ module.exports = {
     getOneTask,
     updateTask,
     deleteTask,
-    getAllTasks
+    getAllTasks,
+    getAllTasksAssigned,
 }

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { signUp, userLogin, signOut, verifyEmail, resendVerificationEmail, changePassword, resetPassword, forgotPassword } = require('../controllers/editorController');
+const { signUp, userLogin, signOut, verifyEmail, resendVerificationEmail, changePassword, resetPassword, forgotPassword, ChangetoPremium } = require('../controllers/editorController');
 const { getAllEditors, getOneEditor, UpdateEditor, deleteAnEditor } = require("../controllers/editorController");
 const { validationMiddleware } = require("../middleware/editorValidation");
 
@@ -24,6 +24,7 @@ router.route("/forgot-password/:token").post(forgotPassword);
 router.route("/get-all-editors").get(getAllEditors);
 router.route("/get-one-editor/:id").get(getOneEditor);
 router.route("/update-editor/:id").put(UpdateEditor);
-router.route("/delete-editor/:id").delete(deleteAnEditor)
+router.route("/delete-editor/:id").delete(deleteAnEditor);
+router.route("/upgrade-account/:editorId").put(ChangetoPremium)
 
 module.exports = router;

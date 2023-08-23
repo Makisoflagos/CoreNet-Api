@@ -51,6 +51,10 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isPremium: {
+        type: Boolean,
+        default: false
+    },
     role: {
         type: String,
         default: "Editor"

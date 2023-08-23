@@ -139,7 +139,9 @@ function mailTemplate(link, UserName) {
     <a href=${link} class="verification-button">Verify Email</a>
   </div>
   <div class="footer">
-    CoreNet | Address: 161 Muyibi Street, Olodi-Apapa, Ajegunle | Phone: (234) 456-7890 | Email: corenetplus@gmail.com
+    CoreNet | Address: 161 Muyibi Street, Olodi-Apapa, Ajegunle 
+    | Phone: (234) 456-7890 
+    | Email: corenetplus@gmail.com
   </div>
 </body>
 </html>`

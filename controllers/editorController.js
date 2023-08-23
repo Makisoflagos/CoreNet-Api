@@ -10,7 +10,9 @@ const UploadedFile = require("express-fileupload");
 const { sendEmail } = require("../middleware/sendingMail")
 const { mailTemplate } = require("../utils/emailtemplate")
 const writerModel = require("../models/writerModel")
-const taskModel = require("../models/taskModel")
+const taskModel = require("../models/taskModel");
+const { premiumMail } = require("../utils/premiumMail");
+
 
 
 // SignUp
@@ -177,6 +179,40 @@ const resendVerificationEmail = async (req, res) => {
             message: error.message
         })
     }
+}
+// update when paid 
+const ChangetoPremium = async(req, res) => {
+  try{
+    const editorId = req.params.editorId
+    const editor = await editorModel.findById(editorId)
+
+    if(!editor){
+      return res.status(404).json({
+        message: `Editor not found`
+      })
+    }
+
+    editor.isPremium = true
+    await editor.save()
+
+    const subject = "Account Upgraded";
+             const html = await premiumMail(editor.UserName);
+             const mail = {
+             email: editor.Email,
+             subject,
+             html,
+            };
+             sendEmail(mail);
+
+        res.status( 200 ).json( {
+            message: `Account Upgrade mail sent successfully to your email: ${editor.Email}`
+        } );
+
+  }catch( error ) {
+    res.status( 500 ).json( {
+        message: error.message
+    })
+}
 }
 
 //login function
@@ -575,7 +611,8 @@ module.exports = {
   getAllEditors,
   getOneEditor,
   UpdateEditor,
-  deleteAnEditor
+  deleteAnEditor,
+  ChangetoPremium
     
 
 }
