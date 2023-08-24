@@ -12,6 +12,8 @@ const { mailTemplate } = require("../utils/emailtemplate")
 const writerModel = require("../models/writerModel")
 const taskModel = require("../models/taskModel");
 const { premiumMail } = require("../utils/premiumMail");
+const {resetMail} = require("../utils/resetpasswordmail")
+const {resendMail} = require("../utils/verificationmail")
 
 
 
@@ -75,7 +77,7 @@ const signUp = async ( req, res ) => {
            const link = `https://corenetapplication.onrender.com/#/verifypage/${token}`;
             const html = await mailTemplate(link, user.UserName);
             const mail = {
-            email: Email,
+            email: Email.toLowerCase(),
             subject,
             html,
            };
@@ -121,6 +123,11 @@ const verifyEmail = async (req, res) => {
         });
       }
   
+      if(editor.isVerified === true){
+        return res.status(400).json({
+          message: `This editor has been verified, proceed to log in`
+        })
+      }
       // Update the user verification
       editor.isVerified = true;
   
@@ -162,16 +169,16 @@ const resendVerificationEmail = async (req, res) => {
              const protocol = req.protocol;
              const host = req.get("host");
             const link = `https://corenetapplication.onrender.com/#/verifypage/${token}`;
-             const html = await mailTemplate(link, editor.UserName);
+             const html = await resendMail(link, editor.UserName);
              const mail = {
-             email: Email,
+             email: Email.toLowerCase(),
              subject,
              html,
             };
              sendEmail(mail);
 
         res.status( 200 ).json( {
-            message: `Verification email sent successfully to your email: ${editor.Email}`
+            message: `Verification email sent successfully to your email: ${editor.Email.toLowerCase()}`
         } );
 
     } catch ( error ) {
@@ -198,14 +205,14 @@ const ChangetoPremium = async(req, res) => {
     const subject = "Account Upgraded";
              const html = await premiumMail(editor.UserName);
              const mail = {
-             email: editor.Email,
+             email: editor.Email.toLowerCase(),
              subject,
              html,
             };
              sendEmail(mail);
 
         res.status( 200 ).json( {
-            message: `Account Upgrade mail sent successfully to your email: ${editor.Email}`
+            message: `Account Upgrade mail sent successfully to your email: ${editor.Email.toLowerCase()}`
         } );
 
   }catch( error ) {
@@ -223,7 +230,7 @@ const userLogin = async (req, res) => {
     const { Email, Password } = req.body;
 
     // Find the editor by their username
-    const editor = await editorModel.findOne({ Email });
+    const editor = await editorModel.findOne({ Email: Email.toLowerCase()});
 
     // Check if the editor exists
     if (!editor) {
@@ -246,7 +253,7 @@ const userLogin = async (req, res) => {
     // Check if user is verified
     if (!editor.isVerified) {
       return res.status(404).json({
-          message: `User with ${editor.Email} is not verified`,
+          message: `User with ${editor.Email.toLowerCase()} is not verified`,
       });
     }
 
@@ -255,7 +262,7 @@ const userLogin = async (req, res) => {
       {
         id: editor._id,
         UserName: editor.UserName,
-        Email: editor.Email,
+        Email: editor.Email.toLowerCase(),
       },
       process.env.secretKey,
       { expiresIn: "1d" }
@@ -272,7 +279,7 @@ const userLogin = async (req, res) => {
         editorId: editor._id,
         UserName: editor.UserName,
         token: editor.token,
-        Email: editor.Email
+        Email: editor.Email.toLowerCase()
       },
     });
   } catch (error) {
@@ -334,9 +341,9 @@ const forgotPassword = async (req, res) => {
       const protocol = req.protocol;
       const host = req.get("host");
      const link = `https://corenetapplication.onrender.com/#/adminresetpassword/${resetToken}`;
-      const html = await mailTemplate(link, editor.UserName);
+      const html = await resetMail(link, editor.UserName);
       const mail = {
-      email: Email,
+      email: Email.toLowerCase(),
       subject,
       html,
      };
@@ -510,7 +517,7 @@ const UpdateEditor = async (req, res) => {
         //     })
         // }
         // check if email exists in the databse
-        const emailExists = await editorModel.findOne({ Email })
+        const emailExists = await editorModel.findOne({ Email: Email.toLowerCase()})
         if (emailExists) {
             return res.status(400).json({
                 message: `Email already exists.`

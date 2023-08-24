@@ -15,9 +15,9 @@ router.route("/log-in").post( userLogin )
 router.route("/sign-out/:id").post(signOut)
 router.route("/verify-emailadd/:token").get(verifyWriterEmail)
 router.route('/resend-email').post(resendVerificationWriterEmail)
-router.route("/change-pass/:token").post(changePassword)
-router.route('/reset-pass/:token').post(resetPassword)
-router.route("/forgot-pass/:token").post(forgotPassword)
+router.route("/change-pass/:token").post(writerValidationSchema, changePassword)
+router.route('/reset-pass/:token').post(writerValidationSchema,resetPassword)
+router.route("/forgot-pass/").post(forgotPassword)
 
 
 // writers CRUD operation

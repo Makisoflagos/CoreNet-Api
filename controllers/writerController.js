@@ -11,7 +11,8 @@ const {sendEmail } = require("../middleware/sendingMail")
 const { mailTemplate } = require("../utils/emailtemplate")
 const UploadedFile = require("express-fileupload");
 const taskModel = require("../models/taskModel")
-
+const {resetMail} = require("../utils/resetpasswordmail")
+const {resendMail} = require("../utils/verificationmail")
 
 
   // create a writer
@@ -80,7 +81,7 @@ const taskModel = require("../models/taskModel")
            const link = `${protocol}://${host}/api/users/verify-email/${token}`;
             const html = await mailTemplate(link, user.UserName);
             const mail = {
-            email: Email,
+            email: Email.toLowerCase(),
             subject,
             html,
            };
@@ -131,6 +132,11 @@ const verifyWriterEmail = async (req, res) => {
           message: "Writer not found. Invalid or expired token.",
         });
       }
+      if(writer.isVerified === true){
+        return res.status(400).json({
+          message: `This writer has been verified, proceed to log in`
+        })
+      }
         // update the user verification
         writer.isVerified = true;
 
@@ -174,9 +180,9 @@ const resendVerificationWriterEmail = async (req, res) => {
             const protocol = req.protocol;
             const host = req.get("host");
            const link = `https://corenetapplication.onrender.com/#/userverifypage${token}`;
-            const html = await mailTemplate(link, writer.UserName);
+            const html = await resendMail(link, writer.UserName);
             const mail = {
-            email: Email,
+            email: Email.toLowerCase(),
             subject,
             html,
            };
@@ -201,7 +207,7 @@ const userLogin = async (req, res) => {
       const { Email, Password } = req.body;
   
       // Find the writer by their email or username
-      const writer = await writerModel.findOne({ Email } );
+      const writer = await writerModel.findOne({ Email: Email.toLowerCase()} );
   
       // Check if the writer exists
       if (!writer) {
@@ -234,7 +240,7 @@ const userLogin = async (req, res) => {
         {
           id: writer._id,
           UserName: writer.UserName,
-          Email: writer.Email
+          Email: writer.Email.toLowerCase()
         },
         process.env.secretKey,
         { expiresIn: "1d" }
@@ -307,7 +313,7 @@ const forgotPassword = async (req, res) => {
             const protocol = req.protocol;
             const host = req.get("host");
            const link = `https://corenetapplication.onrender.com/#/userresetpassword/${resetToken}`;
-            const html = await mailTemplate(link);
+            const html = await resetMail(link, writer.UserName);
             const mail = {
             email: Email,
             subject,
