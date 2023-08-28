@@ -157,7 +157,7 @@ const AcceptTask = async (req, res) => {
 const getOneTask = async (req, res) => {
     try{
       const { id } = req.params;
-      const oneTask= await taskModel.findById(id)
+      const oneTask= await taskModel.findById(id).populate("comment")
       if (!oneTask){
         return res.status(404).json({
           message: `The task with ths ${id} doesn't exist`

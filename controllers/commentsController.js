@@ -28,8 +28,11 @@ const CreateCommentEditor =  async (req, res) => {
         role: editor.role,
         task: task._id,
       });
-  
+    
       await newComment.save();
+      task.comment.push(newComment)
+      await task.save()
+     
   
       res.status(201).json({ 
         message: 'Comment created successfully', 
@@ -63,6 +66,11 @@ const CreateCommentWriter =  async (req, res) => {
       });
   
       await newComment.save();
+      console.log(task.comment);
+      task.comment.push(newComment._id)
+      console.log(task.comment);
+      await task.save()
+     
   
       res.status(201).json({ 
         message: 'Comment created successfully', 

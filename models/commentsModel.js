@@ -1,7 +1,6 @@
 // call the needed modules
 
 const mongoose = require("mongoose");
-
 // new mongoose schema
 
 const CommentSchema = new mongoose.Schema({
