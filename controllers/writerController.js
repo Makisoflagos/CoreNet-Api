@@ -78,7 +78,7 @@ const {resendMail} = require("../utils/verificationmail")
             const subject = "Verify your Email";
             const protocol = req.protocol;
             const host = req.get("host");
-           const link = `${protocol}://${host}/api/users/verify-email/${token}`;
+           const link = `https://corenetapplication.onrender.com/#/userverifypage/${token}`;
             const html = await mailTemplate(link, user.UserName);
             const mail = {
             email: Email.toLowerCase(),

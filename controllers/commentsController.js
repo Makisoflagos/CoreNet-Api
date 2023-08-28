@@ -66,9 +66,9 @@ const CreateCommentWriter =  async (req, res) => {
       });
   
       await newComment.save();
-      console.log(task.comment);
+      
       task.comment.push(newComment._id)
-      console.log(task.comment);
+    
       await task.save()
      
   
