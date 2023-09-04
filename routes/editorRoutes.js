@@ -16,7 +16,7 @@ router.route("/login").post(userLogin);
 router.route("/signout/:id").post(signOut);
 router.route("/verify-email/:token").get(verifyEmail);
 router.route("/resend-verification-email").post(resendVerificationEmail);
-router.route("/change-password/:token").post(validationMiddleware, changePassword);
+router.route("/change-password/:token").post( changePassword);
 router.route('/reset-password/:token').post(validationMiddleware, resetPassword);
 router.route("/forgot-password/").post(forgotPassword);
 
